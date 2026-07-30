@@ -34,14 +34,47 @@ Search `index.html` for `✎` — that marks every line written to be swapped:
 - **CH2 ID** — the two bio paragraphs and the four spec rows
 - **CH3 WORK** — four project dossiers. Duplicate an `<li class="dossier">` to add
   one. `MSN-01` is just a designation; renumber freely. Status badge is
-  `is-live`, `is-arch`, or `is-build`.
+  `is-live`, `is-arch`, or `is-build`. These are the fallback once repos are
+  tagged — see [The live manifest](#the-live-manifest).
 - **CH4 SYS** — the module list. `[ OK ]` uses `.mod__ok`, `[LOAD]` uses `.mod__warn`.
 - **CH5 COMMS** — the four links. Mail is already yours; GitHub, LinkedIn and
-  resume are `#` stubs.
+  resume are `#` stubs. The riddle pool below them is in `crt.js` §11b.
 
 The live telemetry (signal %, packet count, elevation, RX rate, spectrum trace)
 is decorative — generated in `crt.js` §9–10. It reads as a console at idle; it
 does not claim real data.
+
+## The live manifest
+
+`github.js` pulls the project list off the GitHub API so **CH3 WORK** and the
+Windows 98 **Projects** folder stop being two hand-maintained copies of the same
+thing. Config is the four constants at the top of the file — `USER`, `TOPIC`,
+`MAX`, `TTL`.
+
+**It is opt-in per repo.** Only repos carrying the `portfolio` topic are listed.
+That is deliberate: "every public repo" is the wrong list for anyone who has
+ever pushed a class exercise, and this account has fifty of them. To put a
+project on the site, tag it on GitHub — *Settings ▸ About ▸ Topics ▸
+`portfolio`* — and it appears on the next load, in both places.
+
+Until something is tagged, the hand-written dossiers in `index.html` stand and
+a note under the list says which topic to use.
+
+| Situation | What you get |
+|---|---|
+| Repos tagged | They replace the authored list, newest push first, capped at `MAX` |
+| Nothing tagged | Authored list, plus a note naming the topic |
+| Offline / rate-limited / 500 | Authored list, plus a note saying why |
+| No JS at all | Authored list, no note |
+
+Status badges are derived, not typed: `archived` on GitHub → **ARCHIVE**, a
+`homepage` set → **LIVE**, untouched for over `DORMANT_DAYS` → **ARCHIVE**,
+anything else → **BUILD**.
+
+Answers are cached in `localStorage` for 30 minutes. The unauthenticated API
+allows 60 calls an hour per IP, and a visitor reloading a few times should not
+spend them. No token is involved and none should be — anything in this file
+ships to the browser.
 
 ## Controls
 
@@ -53,9 +86,12 @@ control.
 |---|---|
 | Keys `1`–`5` on the fascia, or number keys `1`–`5` | Change channel |
 | `←` `→` `↑` `↓` while a channel key has focus | Step through channels |
-| ⏻ button | Power the tube down and back up |
-| TUBE knob | Swap P4 white ↔ P1 green phosphor |
+| ⏻ button | Power the tube down and back up. Clicks — a synthesised switch, not a beep |
+| TUBE knob *(terminal)* | Swap P4 white ↔ P1 green phosphor |
+| TUBE knob *(Windows 98)* | **Volume.** Clockwise louder, anticlockwise quieter. Drag, scroll or arrow-key it; click to mute. Detents tick as it passes them, and a gauge ring round the knob shows the level |
+| Keys `1`–`5` *(Windows 98)* | Locked. The OS owns the tube, so they dim and do nothing — including the static burst, which used to fire and read as though the set had responded |
 | Any key during boot | Skip the boot sequence |
+| **RIDDLE ME THIS** on CH5 | Draw a riddle whose answer is the line below |
 | **Enter ×3 on CH5** (or 3 clicks on END OF TRANSMISSION) | Open the access gate |
 
 ## Monochrome
@@ -85,19 +121,61 @@ and the static canvas all bow together.
 Things worth knowing before you change it:
 
 - `WARP_K` in `crt.js` sets bend strength, tuned to `0.022` — a late-model
-  near-flat computer tube, not a 70s TV. `setSafeArea()` derives the title-safe
-  margins (`--warp-x` / `--warp-y`) from the live tube size, so **raising
-  `WARP_K` means raising those factors too.** The barrel pulls edge content
-  outward and `#tubeShape` rounds off the corners; between them, text with too
-  little margin gets pushed off the glass.
-- `#tubeShape` fills its box with only a small corner radius, and `--wl` is `0`
-  so the glass runs right to the plastic opening. Earlier versions inset the
-  corners far enough that the dark recess read as a **black frame**, and it
-  clipped maximised windows and the taskbar.
+  near-flat computer tube, not a 70s TV.
+- **`setSafeArea()` measures, it does not guess.** It clones `#tubeShape`'s path
+  into the defs sheet and runs `isPointInFill` against it, after applying the
+  same barrel displacement the filter will. Two effects compound — the bend
+  pushes content outward, and only *then* does the clip cut the corners — and
+  their ratio moves with the viewport's aspect *and* with the bend strength,
+  which OS mode drops to a quarter (`scale` 120 → 30). A single percentage was
+  clipping the taskbar and a maximised title bar at every size. It publishes:
+
+  | | |
+  |---|---|
+  | `--warp-x` / `--warp-y` | largest centred rectangle that fits, as an equal pixel margin on both axes. The deck, the desktop icons, the statusline. |
+  | `--edge-x` | horizontal room for anything pinned to the very top or bottom, where the corner cuts deepest. Taskbar contents, Start menu, a maximised window's title bar and body. |
+
+  Any change to `WARP_K` or to the path is picked up automatically; every change
+  of `scale` re-measures.
+- **Do not sample the last few rows.** The bend pushes a point at `y=1px` clean
+  off the top of the tube, so no `x` is safe there at all. An early version
+  scanned fractional bands including `y=0.001`, found nothing, and clamped
+  `--edge-x` to its ceiling — 225px of inset on a 1401px tube. The bands are in
+  pixels now (`EDGE_PX`), covering the range real chrome occupies, and a band
+  with no answer is skipped rather than maxed.
+- `#tubeShape` is the faceplate silhouette: straight top and bottom, and sides
+  that **bow outward**, touching full width only at mid-height and falling back
+  3.4% by the corners. `--wl` is `0`, so the glass runs right to the plastic
+  opening and the bow is the outline you actually see.
+  - Use **one cubic per side**, corner to corner. Two cubics meeting at the
+    widest point hold the edge flat against the box for the middle 70% of its
+    height, and the result reads as a rounded rectangle rather than a curve —
+    the bow only shows if the deviation grows across the whole edge.
+  - The 3.4% corner inset is a ceiling, not a preference. Everything inside is
+    positioned off `--warp-x`, and anything closer to the edge than the corner
+    cut gets sliced by it. The Win98 taskbar, Start menu and desktop icons all
+    moved from `--warp-x * .6` to `* .85` to clear it, and maximised windows
+    inset by `* .72` — full-bleed lost the left of the title bar, icon and all.
+  - Earlier versions inset the corners far enough that the dark recess read as a
+    **black frame**, which is the other end of the same trade.
+- `.well` carries the **same clip** as `.glass`. It has to: a rounded-rect
+  recess behind a bowed glass leaves the difference between the two shapes
+  showing down both sides as black slivers — plastic, black gap, picture, which
+  no real set has. Clipping both to one path means the cabinet meets the tube
+  directly and the curve is the only edge in the frame. The cost is `.well`'s
+  moulded lip, since a clip-path clips box-shadow too; `.glass`'s inner
+  vignette draws the opening instead. A `drop-shadow` filter would bring the
+  lip back, over a subtree that already carries a full-screen SVG displacement
+  filter and repaints every frame — not worth 2px of highlight.
 - The map is generated at 420px wide. At 160 its own upscaling interpolation
   visibly shredded 1–2px rules and small text near the edges.
 - `.scroll`'s bottom inset includes `--warp-y` so scrolling text can't slide
   under the statusline.
+- `.fx--roll` is a soft luminance band drifting down the tube on an 11s loop —
+  the ghost of a vertical hold that is very nearly right and never quite
+  settles. Held at ~3% white: any stronger and it stops reading as texture and
+  starts reading as a fault. `transform` only, so it composites on the GPU and
+  costs nothing per frame. Off under `prefers-reduced-motion`.
 - The scanline layer sits *above* the screen content, so anything thinner than a
   few pixels gets sliced into dashes. That's why the statusline bar is 5px and
   its channel chip is outlined rather than a filled block.
@@ -122,9 +200,14 @@ just black.
   yellows. Retint the tube via `--p`, `--p-dim`, `--p-mid`, `--p-glow`;
   `--p-glow` is a space-separated RGB triplet because the glows use
   `rgb(… / alpha)`.
-- **Cabinet** — `--bz` sets bezel thickness, `--cr` the corner radius, `--wl` the
-  screen-well lip. The recess is a single element (`.well`) whose inset shadows
-  do the moulding: dark lip above the glass, light catch below.
+- **Cabinet** — the bezel is set per axis, not uniformly: `--bz-x` beside the
+  tube, `--bz-t` above it, `--bz-b` below the fascia. A real desktop terminal
+  carried almost no plastic at the sides — the depth was all in the base, where
+  the controls and chassis went — and one uniform bezel threw away the widest
+  part of the screen. The glass now runs to about 86% of the cabinet's area.
+  `--cr` is the corner radius, `--wl` the screen-well lip. The recess is a
+  single element (`.well`) whose inset shadows do the moulding: dark lip above
+  the glass, light catch below.
 - **Type** — VT323 for display, IBM Plex Mono for body. Both fall back to the
   system monospace. Cabinet lettering is debossed: dark ink plus a 1px white
   bevel below, which is what reads as engraved on light plastic.
@@ -152,6 +235,27 @@ outline plus overlays.
   the plastic on the fascia.
 - Degrades to a plain scrolling page with all five sections visible if JS fails.
 
+
+## The riddle
+
+The guest session used to be undiscoverable — nothing on the page suggested that
+CH5 had a door in it. **RIDDLE ME THIS**, between the address list and the
+sign-off, is the only signpost it gets.
+
+Pressing it draws one of eight riddles at random (`RIDDLES` in `crt.js` §11b).
+They are worded differently but **all have the same answer**: knock three times.
+Half of them point at the Enter key, half at the sign-off line, so a visitor gets
+a usable answer whichever one they draw; on a touch device the meta row also
+names the tap target outright.
+
+Three cells sit at the right of the riddle. They fill as the knocks land and
+clear after 1.4s of silence — without them the first two presses look like
+nothing happened, which is what made the door unfindable in the first place. The
+button hands focus to the riddle panel rather than keeping it, so the very next
+Enter counts as a knock instead of re-drawing.
+
+Draw three riddles and a nudge appears; draw five and it says plainly that they
+all share an answer.
 
 ## The guest session
 
@@ -190,13 +294,141 @@ they appeared. At 45 the curve still reads and the pointer stays honest.
 | Resize a window | Drag the grip at the bottom-right |
 | Maximise | Title-bar button, or double-click the title bar |
 | Minimise / switch | Title-bar button, or the taskbar buttons |
+| **Internet Explorer** | **Actually browses the web** — the frame under the chrome is your real browser engine. Working Back/Forward, a Stop that cancels the load, Refresh, Home, Favorites, and an address bar that takes any URL. Also serves an in-world site at `kvd.local` (`SITES` in `win98.js` §6c2), written the way a personal site was written in 1998. See [below](#internet-explorer-really-browses). |
+| **Calendar** | Date/Time Properties: month dropdown, year field, working grid with today outlined, a live clock, and a Today button. Also opens on a **double-click of the tray clock**, same as the real shell. |
+| **MS-DOS Prompt** | A working shell over a virtual `A:\PORTFOLIO`. `HELP` lists the commands; `DIR`, `CD`, `TYPE`, `TREE`, `CLS`, `ECHO`, `VER`, `DATE`, `TIME`, `MEM`, `START`, `EXIT` all do what they say. `↑`/`↓` walk the history. Typing a filename alone prints it. |
+| **Calculator** | Standard view, working. Full keyboard: digits, `+ - * /`, `Enter`/`=`, `Backspace`, `Delete` (CE), `Esc` (C). Divide by zero says so. |
+| **Games** | A folder on the desktop: Snake, Minesweeper, DOOM, DOOM II and Grand Theft Auto. See [The arcade](#the-arcade). |
+| **Snake** | Written here, not embedded. 24×18 grid on a canvas, arrows or WASD, `P` pauses, speed climbs with every apple, best score kept in `localStorage`. Turns are queued so a fast corner isn't eaten by the tick. |
 | **Minesweeper** | 9x9, 10 mines. Left-click reveals, right-click flags, the face resets. First click is always safe. |
 | **Notepad** | The About window is a real editable textarea. Nothing is saved. |
 | **Display Properties** | Start ▸ Settings, or right-click the desktop ▸ Properties. Recolours the desktop live. |
-| **Run** | Start ▸ Run. Accepts `notepad`, `winmine`, `explorer`, `control`, `devmgr`, `mail`, `help` and a few aliases; anything else gets the authentic "Cannot find the file" error. |
+| **Run** | Start ▸ Run. Accepts `notepad`, `winmine`, `calc`, `command`, `explorer`, `control`, `devmgr`, `mail`, `help` and a few aliases; anything else gets the authentic "Cannot find the file" error. |
+| Start menu | `↑`/`↓` walk it and wrap, `Home`/`End` jump; opening it focuses the first item, `Esc` closes it and returns focus to Start |
 | Desktop right-click | Arrange Icons by Name (really sorts), Line up Icons (resets), Refresh, Properties |
 | Sound | Speaker icon in the tray mutes the startup chime; the choice is remembered |
+| Tray clock | Hovering it shows the full date |
 | `Esc` | Closes the front window, then the menu, then the gate |
+
+### The arcade
+
+**Snake** is written in `win98.js` §6c1 — a canvas, a queue for the body, and a
+turn buffer so a corner taken faster than the tick still lands. It owes nothing
+to anyone.
+
+**DOOM, DOOM II and Grand Theft Auto** are DOS binaries. They run the only way
+they can in a browser: the Internet Archive's in-page DOSBox, framed. The
+emulator isn't sandboxed — it needs workers, WASM and the full keyboard, and
+archive.org is the host either way — but **nothing loads until Start is
+pressed**, so opening the folder doesn't spin up three emulators.
+
+| Window | Item |
+|---|---|
+| DOOM | `DoomsharewareEpisode` — Episode 1, *Knee-Deep in the Dead* |
+| DOOM II | `doomII` — *Hell on Earth* |
+| Grand Theft Auto | `grand-theft-auto-1997-dma-design` — DMA Design, 1997 |
+
+**GTA 2 is the one that opens outward.** It's a Win32 DirectX title, so DOSBox
+can't run it and there's no in-browser build to frame. The ROM sites that host
+it are ad farms — framing one gets you its logo, its whole navigation, a rating
+widget and a thumbnail strip, with the game as a grey box in the middle.
+
+A CSS crop to hide that chrome was measured and abandoned. The game element sits
+at:
+
+| iframe width | top | left | size |
+|---|---|---|---|
+| 760 | 347 | 20 | 720×460 |
+| 900 | 363 | 90 | 720×380 |
+| 1040 | 260 | 160 | 720×380 |
+| 1200 | 260 | 304 | 720×**600** |
+
+No stable anchor — the height even changes at identical widths as their ad slots
+reflow above it, and these windows resize. So the GTA 2 window is a launcher: it
+says what it is and opens the game in a real browser window. Everything else in
+the folder runs in place.
+
+### Internet Explorer really browses
+
+The chrome is ours; the renderer underneath is **your actual browser engine**, in
+an `<iframe>`. Wikipedia, CERN's first-ever website, Space Jam 1996 and the
+Internet Archive all load live, inside the tube, under the scanlines.
+
+It resolves four ways:
+
+| Address | What happens |
+|---|---|
+| `kvd.local/…` that exists | The in-world page (`SITES`) |
+| `kvd.local/…` that doesn't | The genuine *"The page cannot be displayed"* |
+| A host on `IE_DENY` | Refusal page immediately, with the real reason |
+| Anything else | Loaded for real in the frame |
+
+**What it cannot do, and why.** Sites that send `X-Frame-Options` or a
+`frame-ancestors` policy will not render inside another page — that is the
+browser obeying them, and nothing on this side can override it. More of the web
+allows framing than you'd guess (Wikipedia does); the big applications don't.
+
+**A page cannot detect the refusal.** This was measured, not assumed — for a
+blocked frame and a working one, every readable signal is identical:
+
+```
+https://example.com/    load 85ms   href THREW:SecurityError  doc null  length 0
+https://github.com/     load 49ms   href THREW:SecurityError  doc null  length 0   (blocked)
+https://neocities.org/  load 923ms  href THREW:SecurityError  doc null  length 0   (blocked)
+```
+
+Timing doesn't separate them either — the blocked one took ten times longer than
+the working one. The engine logs the reason to the console and exposes nothing
+to script. So instead of a heuristic that would be wrong either way:
+
+- `IE_DENY` lists the hosts people actually try, so those refuse **accurately**
+- everything else loads optimistically
+- **New window** in the toolbar stays lit for the whole time a live page is up,
+  so anything that slips through is one click from opening properly
+- `ieRewrite()` turns a YouTube watch URL into its framable `/embed/` form
+- an `https` page can't frame an `http` one; that's caught and explained up front
+
+The frame is sandboxed **without** `allow-top-navigation`: a site loaded in there
+must not be able to steer the page it's sitting inside.
+
+**Want it to load everything?** Two routes, both outside a static site: put a
+header-stripping proxy in front (a Cloudflare Worker will do it in ~40 lines,
+with the caveat that you're re-serving other people's pages and JS-heavy sites
+still break), or ship the whole thing as a desktop app — a Tauri webview isn't
+bound by framing rules because you control the client.
+
+The DOS filesystem is one nested object (`DOS_FS` in `win98.js` §6d):
+directories are objects, files are strings. Adding a file to `A:` is one line.
+The same portfolio copy lives there in plain text, which is roughly the format
+it was written in first.
+
+### Sound
+
+One `AudioContext` for the whole set, in `crt.js` §6b — everything runs through
+the same master gain, so the TUBE knob controls the lot. **No audio files ship;
+all of it is synthesised.**
+
+| | |
+|---|---|
+| **Idle hum** | What a powered tube puts into a room. 50 Hz mains and its first two harmonics through a lowpass, plus the flyback whistling at a 15625 Hz line rate. PAL numbers, not NTSC's 60 / 15734 — the set is wired for Mumbai. |
+| **Flyback whine** | 15.6 kHz is above where many adults hear anything, so half of it rides underneath at a lower level: audible without being a dog whistle. Runs the whole time the tube is on and stops with the power. |
+| **Degauss** | The thunk-wobble on a cold start. A sawtooth dropping 76→37 Hz behind a closing lowpass, tremolo starting at 11 Hz and slowing to 2 Hz as the field settles, and a filtered noise burst up front for the shadow mask taking the hit. |
+| **Power switch** | Filtered noise for the contact, a fast downward triangle for the mass of the plastic. Heavier going down than coming up. |
+| **Boot** | A tick per POST line and per typed character (throttled to 28 ms), then a 1046 Hz square beep when the meter hits 100. |
+| **Knob detent** | A 26 ms square blip, retuned slightly each time so a fast sweep doesn't become a tone. |
+| **Startup chime** | See below — the only long one. |
+
+Levels are deliberately low. The hum should be the thing you notice *stopping*,
+not the thing you notice.
+
+**A context cannot start outside a user gesture**, so the set is silent until
+the first click or keypress — then it warms up: degauss fires, the hum fades in
+over 1.8 s behind it. On a cold load that's usually the keypress that skips the
+boot, which is why the first few POST lines are silent. Powering off stops the
+hum; powering on runs the whole warm-up again.
+
+Volume and mute persist in `localStorage` (`kvd-vol`, `kvd-mute`). The tray
+speaker in Windows 98 and the TUBE knob are two handles on the same state.
 
 ### The startup chime
 
@@ -239,6 +471,12 @@ All found by driving the page, not by reading it:
   `buildDesktop`, referencing a variable that no longer existed. It parsed fine
   — `node --check` passed — but threw at runtime before `show(w98)`, so the
   icons existed in the DOM and were simply never displayed.
+- **The Start menu banner climbed out of the menu.** `Windows98` on the blue
+  rail was a `width:0` block rotated `-90deg`. A rotate does not affect layout,
+  and with zero width the `translate(-100%)` that was supposed to pull it back
+  down resolved to zero — so the text ran upward out of the rail and sat on top
+  of the desktop icons. It is `writing-mode:vertical-rl` + `rotate(180deg)` now,
+  which reads bottom-to-top *and* takes up space, in a rail with `overflow:hidden`.
 - **Windows 98 text was mushy.** Three things stacked up: the barrel filter
   resampling every glyph, the scanline overlay, and 11px type. Fixed by dropping
   the displacement to `scale` 30 in OS mode, easing the overlays, and going to

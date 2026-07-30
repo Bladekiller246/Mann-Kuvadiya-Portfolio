@@ -25,16 +25,28 @@
   --shell-dk: #a89f88;
   --engrave:  #6b6350;
 
-  /* cabinet metrics */
-  --bz: clamp(15px, 4.8vmin, 62px);   /* bezel / cabinet padding */
-  --wl: 0px;                          /* glass fills the opening — no black frame */
-  --cr: clamp(12px, 2.8vmin, 32px);   /* cabinet corner radius */
+  /* Cabinet metrics, per axis. A real desktop terminal carried almost no
+     plastic beside the tube — the depth was all in the base, where the
+     controls and the chassis went. One uniform bezel wasted the widest
+     part of the screen, so the sides are trimmed hard and the base is
+     only as deep as the fascia needs. */
+  --bz-x: clamp(9px, 1.9vmin, 24px);   /* left / right */
+  --bz-t: clamp(10px, 2.2vmin, 28px);  /* above the tube */
+  --bz-b: clamp(9px, 2vmin, 26px);     /* below the fascia */
+  --wl: 0px;                           /* glass fills the opening — no black frame */
+  --cr: clamp(10px, 2.2vmin, 26px);    /* cabinet corner radius */
 
-  /* Title-safe area. crt.js overwrites these with exact pixel values
-     from the live tube size — see setSafeArea(). These are the fallback
-     for the no-JS / no-warp path. */
+  /* Title-safe area. crt.js overwrites all three with exact pixels
+     measured off the live clip path — see setSafeArea(). These are the
+     fallback for the no-JS path, and they are deliberately generous:
+     being wrong here means text falls off the glass.
+
+     --warp-x/y  the biggest rectangle that fits inside the bend
+     --edge-x    horizontal room for anything pinned to the very top or
+                 bottom, where the corner curve cuts deepest */
   --warp-x: clamp(20px, 5vw, 70px);
   --warp-y: clamp(12px, 2.2vh, 30px);
+  --edge-x: clamp(28px, 7vw, 96px);
 
   --gut: clamp(.4rem, 1.2vw, 1.2rem);
 
@@ -102,8 +114,8 @@ body{
 .cabinet{
   position:absolute; inset:0;
   display:grid; grid-template-rows:1fr auto;
-  gap:calc(var(--bz) * .55);
-  padding:var(--bz);
+  gap:clamp(7px, 1.4vmin, 18px);
+  padding:var(--bz-t) var(--bz-x) var(--bz-b);
   border-radius:var(--cr);
   background:linear-gradient(178deg,
     var(--shell-hi) 0%, var(--shell) 9%, var(--shell) 74%, var(--shell-lo) 100%);
@@ -129,7 +141,7 @@ body{
 
 /* moulded seam along the base */
 .vent{
-  position:absolute; left:14%; right:14%; bottom:calc(var(--bz) * .3);
+  position:absolute; left:14%; right:14%; bottom:calc(var(--bz-b) * .38);
   height:2px; border-radius:2px; pointer-events:none;
   background:linear-gradient(180deg, rgb(0 0 0 / .1), rgb(255 255 255 / .55));
 }
@@ -137,15 +149,22 @@ body{
 
 /* ═══ 3 · SCREEN WELL ════════════════════════════════════ */
 
+/* Cut to the tube's own outline, not a rounded rectangle. The recess used
+   to be a rounded rect behind a bowed glass, so the difference between the
+   two shapes showed down both sides as black slivers — plastic, then a
+   black gap, then picture, which no real set has. Clipped to the same
+   path, the cabinet meets the tube directly and the curve is the only
+   edge there is.
+
+   A clip-path also clips box-shadow, so the moulded lip that used to ring
+   this element is gone; .glass's inner vignette and .fx--vig draw the
+   opening now. Restoring it would mean a drop-shadow filter over a
+   subtree that already carries a full-screen SVG displacement filter and
+   repaints every frame — not worth 2px of highlight. */
 .well{
   position:relative; min-height:0;
-  border-radius:calc(var(--cr) * .8);
+  clip-path:url(#tubeShape);
   background:linear-gradient(180deg,#1a1d1f 0%,#0c0e10 55%,#080a0b 100%);
-  /* a thin moulded lip only — the glass now runs to the opening's edge */
-  box-shadow:
-    0 2px 0 rgb(255 255 255 / .6),
-    0 -1px 2px rgb(0 0 0 / .28),
-    inset 0 0 0 1px rgb(0 0 0 / .55);
 }
 
 .glass{
@@ -154,9 +173,12 @@ body{
   background:
     radial-gradient(130% 140% at 50% 38%, #151a1e 0%, #0d1113 52%, #07090a 100%),
     var(--void);
+  /* the last two carry the moulded opening now that .well cannot */
   box-shadow:
     inset 0 0 clamp(24px,4.5vmin,64px) rgb(0 0 0 / .6),
-    inset 0 0 14px rgb(0 0 0 / .4);
+    inset 0 0 14px rgb(0 0 0 / .4),
+    inset 0 2px 3px rgb(0 0 0 / .55),
+    inset 0 -1px 0 rgb(255 255 255 / .07);
 }
 
 /* Everything inside is geometrically bent. Map built in crt.js. */
@@ -206,6 +228,29 @@ body.is-cold .statusline{ opacity:0; pointer-events:none; }
   animation:scanDrift 9s linear infinite;
 }
 @keyframes scanDrift{ to{ background-position:0 3px; } }
+
+/* A soft luminance band drifting down the tube — the ghost of a vertical
+   hold that is very nearly right, and never quite settles. Held at ~3%
+   so it reads as texture rather than a fault; any stronger and it looks
+   like the set needs servicing. transform only, so it composites on the
+   GPU and costs nothing per frame. */
+.fx--roll{
+  z-index:6; inset:0 0 auto 0; height:18%;
+  background:linear-gradient(180deg,
+    transparent 0%,
+    rgb(255 255 255 / .010) 22%,
+    rgb(255 255 255 / .030) 50%,
+    rgb(255 255 255 / .010) 78%,
+    transparent 100%);
+  mix-blend-mode:screen;
+  animation:roll 11s linear infinite;
+  will-change:transform;
+}
+@keyframes roll{
+  from{ transform:translateY(-110%); }
+  to  { transform:translateY(600%); }
+}
+@media (prefers-reduced-motion:reduce){ .fx--roll{ display:none; } }
 
 .fx--bloom{
   z-index:11; clip-path:url(#tubeShape);
@@ -331,6 +376,14 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
 .prose p:last-child{ margin-bottom:0; }
 
 .footnote{ margin:1.4rem 0 0; font-size:.76rem; color:var(--p-mid); max-width:52ch; }
+.footnote[hidden]{ display:none; }
+.footnote b{ font-weight:400; color:var(--p); }
+/* a manifest that really came off the wire gets a lit indicator */
+.footnote--live::before{
+  content:""; display:inline-block; width:.42em; height:.42em; margin-right:.6em;
+  vertical-align:.1em; background:var(--p);
+  box-shadow:0 0 .55em rgb(var(--p-glow) / .8);
+}
 
 .analyzer{
   margin:clamp(1rem,2.2vh,1.6rem) 0 0;
@@ -430,7 +483,69 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
   text-shadow:0 0 .32em rgb(var(--p-glow) / .42);
 }
 
-.sign{ margin:clamp(1.6rem,4vh,2.6rem) 0 0; font-size:.62rem; letter-spacing:.28em; color:var(--p-mid); }
+/* ── riddle ─────────────────────────────────────────────
+   Sits between the address list and the sign-off, where a visitor
+   who has read everything else will find it last. */
+
+.riddle{ margin:clamp(1.4rem,3.4vh,2.2rem) 0 0; }
+
+.riddle__btn{
+  display:inline-flex; align-items:center; gap:.6rem;
+  padding:.6rem 1.05rem;
+  background:transparent; border:1px solid var(--p-dim); color:var(--p);
+  font-family:var(--body); font-size:.62rem; letter-spacing:.2em;
+  cursor:pointer; transition:background .18s ease, border-color .18s ease;
+}
+.riddle__btn:hover{ background:rgb(var(--p-glow) / .09); border-color:var(--p); }
+.riddle__btn:focus-visible{ outline:1px solid var(--p); outline-offset:2px; }
+.riddle__glyph{
+  font-family:var(--disp); font-size:1.15rem; line-height:1;
+  text-shadow:0 0 .34em rgb(var(--p-glow) / .55);
+}
+
+.riddle__out{
+  margin-top:1rem; padding:.15rem 0 .15rem 1rem;
+  border-left:2px solid var(--p-dim);
+  animation:riddleIn .26s ease both;
+}
+.riddle__out[hidden]{ display:none; }
+.riddle__out:focus{ outline:0; }
+@keyframes riddleIn{ from{ opacity:0; transform:translateY(-.3rem); } to{ opacity:1; transform:none; } }
+
+.riddle__text{
+  margin:0; max-width:50ch; min-height:3.5em;   /* two lines, so redraws don't jump */
+  color:var(--p); font-size:.9rem; line-height:1.75;
+  text-shadow:0 0 .3em rgb(var(--p-glow) / .34);
+}
+
+.riddle__meta{
+  display:flex; align-items:center; flex-wrap:wrap; gap:.5rem .9rem;
+  margin:.85rem 0 0; max-width:50ch;      /* keeps the cells under the text */
+  font-size:.56rem; letter-spacing:.2em; color:var(--p-mid);
+}
+.riddle__hint[hidden]{ display:none; }
+.riddle__touch{ display:none; }
+@media (pointer:coarse){ .riddle__touch{ display:inline; } }
+
+/* three empty cells that fill as the knocks land — the only feedback
+   that the second Enter did anything at all */
+.riddle__knock{ display:inline-flex; gap:.34rem; margin-left:auto; }
+.riddle__knock i{
+  width:.46rem; height:.46rem; border:1px solid var(--p-dim);
+  transition:background .12s ease, box-shadow .12s ease;
+}
+.riddle__knock i.is-on{
+  background:var(--p); border-color:var(--p);
+  box-shadow:0 0 .55em rgb(var(--p-glow) / .7);
+}
+
+/* the sign-off is a knock target too, for anyone who would rather click */
+.sign{
+  margin:clamp(1.6rem,4vh,2.6rem) 0 0;
+  font-size:.62rem; letter-spacing:.28em; color:var(--p-mid);
+  cursor:pointer; user-select:none; transition:color .18s ease;
+}
+.sign:hover{ color:var(--p); }
 .caret{
   display:inline-block; width:.5em; height:1em; margin-left:.5em;
   background:var(--p); vertical-align:-.15em;
@@ -442,8 +557,10 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
 
 .statusline{
   position:absolute; z-index:5;
+  /* pinned exactly to the safe rectangle's bottom-left and bottom-right,
+     which is as low and as wide as anything can go and still land */
   left:var(--warp-x); right:var(--warp-x);
-  bottom:calc(var(--warp-y) * 1.2);
+  bottom:var(--warp-y);
   display:flex; align-items:center; gap:clamp(.4rem,1.4vw,1rem);
   padding-top:.35rem;
   border-top:1px solid var(--p-dim);
@@ -544,7 +661,9 @@ body.is-powering-off .raster{ animation:powerOff .5s cubic-bezier(.6,0,.9,.4) bo
   display:flex; align-items:center;
   gap:clamp(.4rem,1.4vmin,1.1rem);
   padding:0 clamp(.2rem,.9vmin,.8rem);
-  min-height:clamp(40px, 7.6vmin, 74px);
+  /* only as tall as the channel keys need — every pixel saved here is a
+     pixel the tube gets back */
+  min-height:clamp(36px, 6.6vmin, 64px);
 }
 
 /* engraved cabinet lettering: dark ink with a light lower bevel */
@@ -592,6 +711,19 @@ body.is-powering-off .raster{ animation:powerOff .5s cubic-bezier(.6,0,.9,.4) bo
   text-shadow:0 1px 0 rgb(255 255 255 / .4);
 }
 
+/* The gate and the OS own the tube, so the channel keys go dead — they
+   sit up out of their wells and stop responding to hover. Not `disabled`:
+   they come back on shut down, and a key that vanishes from the tab order
+   halfway through a session is worse than one that says it is locked. */
+body.is-alt .chan{
+  opacity:.45; cursor:not-allowed;
+  background:linear-gradient(180deg,#e6e1d3 0%,#d5cfbe 55%,#c3bca7 100%);
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .6);
+}
+body.is-alt .chan:hover{ background:linear-gradient(180deg,#e6e1d3 0%,#d5cfbe 55%,#c3bca7 100%); }
+body.is-alt .chan:active{ translate:none; }
+body.is-alt .chan.is-on{ opacity:.6; }
+
 .controls{ display:flex; align-items:center; gap:clamp(.3rem,.9vmin,.7rem); flex:none; }
 
 .ctl-label{
@@ -619,6 +751,27 @@ body.is-powering-off .raster{ animation:powerOff .5s cubic-bezier(.6,0,.9,.4) bo
   transition:rotate .3s cubic-bezier(.3,1.5,.5,1);
 }
 html[data-phosphor="p1"] .knob__dial{ rotate:132deg; }
+
+/* In OS mode the knob is a volume control: grab-and-turn, and crt.js
+   writes an inline rotate that outranks the phosphor rule above. The
+   snappy phosphor easing would lag a live drag, so it goes flat. */
+body.is-win98 .knob{ cursor:grab; touch-action:none; }
+body.is-win98 .knob:active{ cursor:grabbing; }
+body.is-win98 .knob__dial{ transition:rotate .06s linear; }
+
+/* gauge ring — fills clockwise with the level, so the setting is
+   readable without turning anything */
+.knob::after{
+  content:""; position:absolute; inset:-5px; border-radius:50%;
+  pointer-events:none; opacity:0; transition:opacity .25s ease;
+  background:conic-gradient(from 225deg,
+    var(--engrave) 0turn calc(var(--vol, 0) * .75turn),
+    transparent calc(var(--vol, 0) * .75turn) .75turn,
+    transparent .75turn 1turn);
+  -webkit-mask:radial-gradient(circle, transparent 0 62%, #000 63%);
+          mask:radial-gradient(circle, transparent 0 62%, #000 63%);
+}
+body.is-win98 .knob::after{ opacity:.55; }
 
 .pwr{
   flex:none; border:0; cursor:pointer;

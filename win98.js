@@ -115,6 +115,58 @@
 
     speaker: svg(`<path d="M4 12h5l6-5v18l-6-5H4z" fill="#000"/>
       <path d="M20 10a8 8 0 0 1 0 12M24 7a13 13 0 0 1 0 18" fill="none" stroke="#000" stroke-width="2"/>`),
+
+    calc: svg(`<rect x="6" y="3" width="20" height="26" fill="#c0c0c0" stroke="#000"/>
+      <rect x="9" y="6" width="14" height="5" fill="#fff" stroke="#808080"/>
+      <g fill="#7a7a7a"><rect x="9" y="14" width="4" height="3"/><rect x="14" y="14" width="4" height="3"/>
+      <rect x="19" y="14" width="4" height="3"/><rect x="9" y="19" width="4" height="3"/>
+      <rect x="14" y="19" width="4" height="3"/><rect x="19" y="19" width="4" height="3"/>
+      <rect x="9" y="24" width="9" height="3"/></g>
+      <rect x="19" y="24" width="4" height="3" fill="#7f0000"/>`),
+
+    dos: svg(`<rect x="3" y="5" width="26" height="22" fill="#c0c0c0" stroke="#000"/>
+      <rect x="3" y="5" width="26" height="4" fill="#000080"/>
+      <rect x="5" y="11" width="22" height="14" fill="#000"/>
+      <g stroke="#c0c0c0" stroke-width="2"><path d="M7 15h4M7 19h8"/></g>`),
+
+    ie: svg(`<ellipse cx="16" cy="17" rx="14" ry="5.5" fill="none" stroke="#e8b21e"
+        stroke-width="3" transform="rotate(-21 16 17)"/>
+      <text x="16" y="25" font-family="Times New Roman,Georgia,serif" font-size="24"
+        font-weight="700" fill="#1f5fbf" text-anchor="middle" shape-rendering="auto">e</text>`),
+
+    snake: svg(`<rect x="3" y="3" width="26" height="26" fill="#0a1a0a" stroke="#000"/>
+      <g fill="#22c022"><rect x="6" y="20" width="5" height="5"/><rect x="11" y="20" width="5" height="5"/>
+      <rect x="16" y="20" width="5" height="5"/><rect x="16" y="15" width="5" height="5"/>
+      <rect x="16" y="10" width="5" height="5"/></g>
+      <rect x="16" y="5" width="5" height="5" fill="#5aff5a"/>
+      <circle cx="9" cy="10" r="2.5" fill="#e02020"/>`),
+
+    doom: svg(`<rect x="3" y="4" width="26" height="24" fill="#280a06" stroke="#000"/>
+      <path d="M8 24c0-7 3.5-11 8-11s8 4 8 11z" fill="#a8301a"/>
+      <path d="M8 13l3-4 2 3 3-4 3 4 2-3 3 4z" fill="#7a1c0c"/>
+      <circle cx="12.5" cy="19" r="2" fill="#ffcf3f"/><circle cx="19.5" cy="19" r="2" fill="#ffcf3f"/>
+      <path d="M11 25h10v2H11z" fill="#5e1408"/>`),
+
+    doom2: svg(`<rect x="3" y="4" width="26" height="24" fill="#1b0a20" stroke="#000"/>
+      <path d="M8 24c0-7 3.5-11 8-11s8 4 8 11z" fill="#7a2a9a"/>
+      <path d="M8 13l3-4 2 3 3-4 3 4 2-3 3 4z" fill="#4e1868"/>
+      <circle cx="12.5" cy="19" r="2" fill="#5aff5a"/><circle cx="19.5" cy="19" r="2" fill="#5aff5a"/>
+      <path d="M11 25h10v2H11z" fill="#360f48"/>`),
+
+    gta: svg(`<rect x="3" y="3" width="26" height="26" fill="#3c3c3c" stroke="#000"/>
+      <g fill="#e8d44a" opacity=".45"><rect x="15" y="4" width="2" height="5"/>
+      <rect x="15" y="13" width="2" height="5"/><rect x="15" y="22" width="2" height="5"/></g>
+      <rect x="10" y="7" width="12" height="18" rx="3" fill="#e0b81c" stroke="#000"/>
+      <rect x="12" y="10" width="8" height="5" fill="#26374f"/>
+      <rect x="12" y="18" width="8" height="4" fill="#26374f"/>`),
+
+    cal: svg(`<rect x="4" y="7" width="24" height="21" fill="#fff" stroke="#000"/>
+      <rect x="4" y="7" width="24" height="6" fill="#a8202a" stroke="#000"/>
+      <rect x="9" y="3" width="3" height="7" fill="#9a9a9a" stroke="#000"/>
+      <rect x="20" y="3" width="3" height="7" fill="#9a9a9a" stroke="#000"/>
+      <g fill="#6a6a6a"><rect x="7" y="16" width="4" height="3"/><rect x="14" y="16" width="4" height="3"/>
+      <rect x="21" y="16" width="4" height="3"/><rect x="7" y="22" width="4" height="3"/></g>
+      <rect x="14" y="22" width="4" height="3" fill="#a8202a"/>`),
   };
 
   /* ── §2 · APPS ──────────────────────────────────────────
@@ -136,14 +188,28 @@
     '-- this file is editable, and nothing is saved anywhere.',
   ].join('\n');
 
+  /* label | key sent to the calculator | colour class */
+  const CALC_ROWS = [
+    ['C|clr|hot', 'CE|ce|hot', '←|back|hot', '÷|/|op'],
+    ['7|7', '8|8', '9|9', '×|*|op'],
+    ['4|4', '5|5', '6|6', '−|-|op'],
+    ['1|1', '2|2', '3|3', '+|+|op'],
+    ['0|0', '.|.', '±|neg', '=|=|op'],
+  ];
+
+  const calcPad = () => CALC_ROWS.map(row => row.map(spec => {
+    const [label, key, cls] = spec.split('|');
+    return `<button class="calc__k${cls ? ' calc__k--' + cls : ''}" data-k="${key}">${label}</button>`;
+  }).join('')).join('');
+
   const APPS = {
     mycomputer: { title: 'My Computer', icon: 'computer', w: 430, h: 260, body: `
       <div class="w98list">
         ${item('floppy', '3½ Floppy (A:)')}
         ${item('drive', '(C:)')}
         ${item('cd', '(D:)')}
-        ${item('gear', 'Control Panel')}
-        ${item('chip', 'Dial-Up Networking')}
+        ${item('gear', 'Control Panel', 'display')}
+        ${item('chip', 'Device Manager', 'skills')}
       </div>`,
       status: ['5 object(s)', '1.44 MB free'] },
 
@@ -204,7 +270,7 @@
       <p>The station listens on all of these. Mail gets the fastest reply.</p>
       <dl class="w98fields">
         <dt>Mail</dt><dd><a href="mailto:mannkuvadiya2006@gmail.com">mannkuvadiya2006@gmail.com</a></dd>
-        <dt>GitHub</dt><dd><a href="#">github.com/…</a></dd>
+        <dt>GitHub</dt><dd><a href="https://github.com/Bladekiller246" target="_blank" rel="noopener">github.com/Bladekiller246</a></dd>
         <dt>LinkedIn</dt><dd><a href="#">linkedin.com/in/…</a></dd>
         <dt>Résumé</dt><dd><a href="#">resume.pdf</a></dd>
       </dl>` },
@@ -213,13 +279,27 @@
       `<p style="padding:16px;text-align:center;color:#555">This folder is empty.</p>`,
       status: ['0 object(s)', '0 bytes'] },
 
-    help: { title: 'Help', icon: 'help', w: 400, h: 250, pane: true, body: `
+    help: { title: 'Help', icon: 'help', w: 410, h: 290, pane: true, body: `
       <h4>Using this desktop</h4>
       <p>• <b>Double-click</b> an icon to open it (or press Enter when it's focused).<br>
-         • Drag a window by its title bar.<br>
+         • Drag a window by its title bar; drag the bottom-right corner to resize.<br>
          • Use the taskbar buttons to switch between open windows.<br>
+         • <b>Right-click</b> the desktop to arrange icons or change the colour.<br>
          • <b>Start ▸ Shut Down</b> returns you to the terminal.<br>
          • <b>Esc</b> closes the front window.</p>
+      <h4>Worth opening</h4>
+      <p>• <b>Internet Explorer</b> — browses a small web that lives inside this
+         machine. Back, Forward and Stop all work; it cannot reach the real
+         internet and says so rather than pretending.<br>
+         • <b>MS-DOS Prompt</b> — type <b>help</b> for the command list. The whole
+         portfolio is on A: as plain text.<br>
+         • <b>Calendar</b> — also on a double-click of the tray clock.<br>
+         • <b>Run…</b> takes program names, same as the real thing.<br>
+         • <b>Minesweeper</b> is 9×9 with 10 mines, and the first click is always safe.</p>
+      <h4>The knob</h4>
+      <p>The <b>TUBE</b> knob on the cabinet is the volume in here. Turn it
+         clockwise for louder, click it to mute. The channel keys are locked
+         while Windows is up.</p>
       <p>You reached this session as GUEST. Admin access is not available.</p>` },
 
     run: { title: 'Run', icon: 'run', w: 395, h: 205, body: `
@@ -251,14 +331,115 @@
         <p class="ms__msg" data-msg></p>
       </div>`,
       init: initMines },
+
+    calc: { title: 'Calculator', icon: 'calc', w: 244, h: 262, flush: true, body: `
+      <div class="calc" tabindex="0">
+        <output class="calc__lcd" data-lcd>0</output>
+        <div class="calc__pad">${calcPad()}</div>
+      </div>`,
+      init: initCalc },
+
+    ie: { title: 'Internet Explorer', label: 'Internet', icon: 'ie',
+      w: 590, h: 420, flush: true, body: `
+      <div class="ie">
+        <div class="w98menubar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span>
+          <span><u>G</u>o</span><span>F<u>a</u>vorites</span><span><u>H</u>elp</span></div>
+        <div class="ie__bar">
+          <button class="ie__btn" data-nav="back" disabled><b>&#9664;</b>Back</button>
+          <button class="ie__btn" data-nav="fwd" disabled><b>&#9654;</b>Forward</button>
+          <button class="ie__btn" data-nav="stop" disabled><b class="ie__x">&#10006;</b>Stop</button>
+          <button class="ie__btn" data-nav="reload"><b>&#8635;</b>Refresh</button>
+          <button class="ie__btn" data-nav="home"><b>&#8962;</b>Home</button>
+          <!-- No page can tell a blocked frame from a loaded one, so this
+               stays lit whenever a live page is up: one click and the real
+               browser gets it. -->
+          <button class="ie__btn ie__btn--out" data-nav="pop" disabled
+            title="Open this address in a real browser window"><b>&#8599;</b>New window</button>
+        </div>
+        <div class="ie__addr">
+          <label for="ieUrl">Address</label>
+          <input class="ie__url" id="ieUrl" data-url spellcheck="false" autocomplete="off">
+          <button class="w98btn ie__go" data-nav="go">Go</button>
+          <span class="ie__throb" data-throb aria-hidden="true">e</span>
+        </div>
+        <div class="ie__view">
+          <div class="ie__page" data-page tabindex="0"></div>
+          <!-- The real web, rendered by the real engine. sandbox without
+               allow-top-navigation: a framed site must not be able to
+               steer the page it is sitting inside. -->
+          <iframe class="ie__frame" data-frame title="Web page" hidden
+            referrerpolicy="no-referrer"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+        </div>
+        <div class="ie__favs" data-favs hidden></div>
+        <div class="w98status ie__status">
+          <i data-status>Done</i>
+          <i class="ie__prog"><b data-progress></b></i>
+          <i>Internet zone</i>
+        </div>
+      </div>`,
+      init: initIE },
+
+    games: { title: 'Games', icon: 'folder', w: 440, h: 230, body: `
+      <div class="w98list">
+        ${item('snake', 'Snake', 'snake')}
+        ${item('mine', 'Minesweeper', 'mines')}
+        ${item('doom', 'DOOM', 'doom')}
+        ${item('doom2', 'DOOM II', 'doom2')}
+        ${item('gta', 'Grand Theft Auto', 'gta')}
+        ${item('gta', 'Grand Theft Auto 2', 'gta2')}
+      </div>`,
+      status: ['6 object(s)', '  '] },
+
+    snake: { title: 'Snake', icon: 'snake', w: 372, h: 352, body: `
+      <div class="snk">
+        <div class="snk__head">
+          <span class="snk__lcd" data-lcd="score">000</span>
+          <button class="snk__face" data-new aria-label="New game">&#9654;</button>
+          <span class="snk__lcd" data-lcd="best">000</span>
+        </div>
+        <canvas class="snk__board" data-board></canvas>
+        <p class="snk__msg" data-msg>Arrow keys or WASD &middot; P pauses</p>
+      </div>`,
+      init: initSnake },
+
+    calendar: { title: 'Date/Time Properties', label: 'Calendar', icon: 'cal',
+      w: 318, h: 302, body: `
+      <div class="cal">
+        <div class="cal__head">
+          <button class="w98btn cal__step" data-cal="prev" aria-label="Previous month">&#9664;</button>
+          <select class="w98input cal__month" data-cal="month" aria-label="Month"></select>
+          <input class="w98input cal__year" data-cal="year" inputmode="numeric" aria-label="Year">
+          <button class="w98btn cal__step" data-cal="next" aria-label="Next month">&#9654;</button>
+        </div>
+        <table class="cal__grid">
+          <thead><tr><th>S</th><th>M</th><th>T</th><th>W</th><th>T</th><th>F</th><th>S</th></tr></thead>
+          <tbody data-cal="grid"></tbody>
+        </table>
+        <p class="cal__now">Current time: <b data-cal="clock">&nbsp;</b></p>
+        <div class="w98btns"><button class="w98btn" data-cal="today">Today</button></div>
+      </div>`,
+      init: initCalendar },
+
+    dos: { title: 'MS-DOS Prompt', icon: 'dos', w: 540, h: 320, flush: true, body: `
+      <div class="dos" data-dos>
+        <pre class="dos__log" data-log></pre>
+        <p class="dos__line">
+          <span data-prompt>A:\\PORTFOLIO&gt;</span><input class="dos__in" data-in
+            spellcheck="false" autocomplete="off" aria-label="MS-DOS command line">
+        </p>
+      </div>`,
+      init: initDos },
   };
 
   function item(icon, label, opens) {
     return `<button class="w98item" ${opens ? `data-open="${opens}"` : ''}>${I[icon]}<span>${label}</span></button>`;
   }
 
+
   /* desktop layout, in order */
-  const DESKTOP = ['mycomputer', 'about', 'projects', 'skills', 'contact', 'mines', 'bin'];
+  const DESKTOP = ['mycomputer', 'ie', 'about', 'projects', 'skills', 'contact',
+                   'dos', 'games', 'bin'];
 
   /* ── §3 · GATE + ADMIN LOGIN ────────────────────────────
      The login is inert: it never sends anything anywhere and it
@@ -328,25 +509,21 @@
      The AudioContext is created on the GUEST click so autoplay policy
      lets it through; playChime() then just schedules notes. */
 
-  let ac = null;
-  let muted = false;
-  try { muted = localStorage.getItem('kvd-mute') === '1'; } catch (_) {}
+  // The context, the master gain, the volume and the mute flag all live
+  // in crt.js §6b — the TUBE knob drives them, and the chime is just one
+  // more thing plugged into the same bus.
+  const snd = () => kvd().audio;
 
-  function ensureAudio() {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    try {
-      if (!ac) ac = new AC();
-      if (ac.state === 'suspended') ac.resume();
-    } catch (_) { ac = null; }
-  }
+  function ensureAudio() { snd()?.ensure(); }
 
   function playChime() {
-    if (!ac || muted || calm.matches) return;
+    const a = snd();
+    if (!a || !a.ensure() || a.muted || calm.matches) return;
+    const ac = a.ctx;
     const t0 = ac.currentTime + 0.06;
     const out = ac.createGain();
     out.gain.value = 0.85;
-    out.connect(ac.destination);
+    out.connect(a.bus);
 
     // pad underneath
     const pad = ac.createGain();
@@ -484,7 +661,7 @@
         <button class="w98tbtn" data-act="close" aria-label="Close">✕</button>
       </div>
       ${app.menubar ? `<div class="w98menubar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>S</u>earch</span><span><u>H</u>elp</span></div>` : ''}
-      <div class="w98body${app.pane ? ' pane' : ''}"${app.flush ? ' style="padding:0"' : ''}>${app.body}</div>
+      <div class="w98body${app.pane ? ' pane' : ''}${app.flush ? ' w98body--flush' : ''}">${app.body}</div>
       ${app.status ? `<div class="w98status">${app.status.map(t => `<i>${t}</i>`).join('')}</div>` : ''}`;
 
     winLayer.appendChild(win);
@@ -554,7 +731,13 @@
         left: win.style.left, top: win.style.top,
         width: win.style.width, height: win.style.height,
       });
-      Object.assign(win.style, { left: '0px', top: '0px', width: '100%', height: '100%' });
+      // Edge to edge, and the tube shaves its corners — which is what a
+      // maximised window looks like on real glass. What it must not do
+      // is lose the title bar's icon or buttons to the curve, so
+      // .is-max pulls the *contents* in to --edge-x instead.
+      Object.assign(win.style, {
+        left: '0px', top: '0px', width: '100%', height: '100%',
+      });
     }
     win.classList.toggle('is-max', !!win.dataset.prev);
   }
@@ -635,10 +818,19 @@
     notepad: 'about', 'about me.txt': 'about', 'about.txt': 'about',
     explorer: 'projects', projects: 'projects',
     winmine: 'mines', minesweeper: 'mines', mines: 'mines',
+    snake: 'snake', games: 'games', doom: 'doom', doom2: 'doom2',
+    'doom ii': 'doom2', gta: 'gta', 'grand theft auto': 'gta',
+    gta2: 'gta2', 'gta 2': 'gta2', 'grand theft auto 2': 'gta2',
     control: 'display', 'control panel': 'display', display: 'display',
     devmgr: 'skills', 'device manager': 'skills',
     mail: 'contact', contact: 'contact',
     help: 'help', 'my computer': 'mycomputer', sol: 'mines',
+    calc: 'calc', calculator: 'calc',
+    command: 'dos', 'command.com': 'dos', cmd: 'dos', dos: 'dos',
+    'ms-dos prompt': 'dos', prompt: 'dos',
+    iexplore: 'ie', ie: 'ie', 'internet explorer': 'ie', browser: 'ie',
+    calendar: 'calendar', date: 'calendar', time: 'calendar',
+    'date/time': 'calendar', timedate: 'calendar',
   };
 
   function initRun(win) {
@@ -806,7 +998,1084 @@
     reset();
   }
 
-  /* ── §6c · DESKTOP CONTEXT MENU ──────────────────────────── */
+  /* Calculator: standard view, accumulator model, keyboard-driven */
+  function initCalc(win) {
+    const lcd = win.querySelector('[data-lcd]');
+    const root = win.querySelector('.calc');
+
+    let cur = '0';      // what the display is showing
+    let acc = null;     // the left-hand operand, once one exists
+    let op = null;      // pending operator
+    let fresh = true;   // next digit starts a new number
+    let err = false;
+
+    const MAXLEN = 16;
+
+    // 0.1 + 0.2 must not read 0.30000000000000004 on a 1998 calculator
+    const tidy = n => {
+      if (!isFinite(n)) return null;
+      const s = String(+n.toPrecision(12));
+      return s.length > MAXLEN ? n.toExponential(9) : s;
+    };
+
+    const paint = () => { lcd.textContent = cur; };
+
+    const apply = () => {
+      const b = parseFloat(cur);
+      const r = op === '+' ? acc + b
+              : op === '-' ? acc - b
+              : op === '*' ? acc * b
+              : acc / b;
+      const s = tidy(r);
+      if (s === null) { cur = 'Cannot divide by zero'; err = true; return; }
+      cur = s;
+    };
+
+    function key(k) {
+      if (err && k !== 'clr') return;          // only C clears an error
+
+      if (k >= '0' && k <= '9') {
+        if (fresh) { cur = k; fresh = false; }
+        else if (cur.length < MAXLEN) cur = cur === '0' ? k : cur + k;
+      } else if (k === '.') {
+        if (fresh) { cur = '0.'; fresh = false; }
+        else if (!cur.includes('.')) cur += '.';
+      } else if (k === 'neg') {
+        cur = cur.startsWith('-') ? cur.slice(1) : '-' + cur;
+      } else if (k === 'back') {
+        if (!fresh) cur = cur.slice(0, -1).replace(/^-?$/, '0');
+      } else if (k === 'ce') {
+        cur = '0'; fresh = true;
+      } else if (k === 'clr') {
+        cur = '0'; acc = null; op = null; fresh = true; err = false;
+      } else if (k === '+' || k === '-' || k === '*' || k === '/') {
+        if (op !== null && !fresh) apply();
+        if (!err) { acc = parseFloat(cur); op = k; fresh = true; }
+      } else if (k === '=') {
+        if (op !== null) { apply(); op = null; acc = null; }
+        fresh = true;
+      }
+      paint();
+    }
+
+    win.querySelectorAll('.calc__k').forEach(b =>
+      b.addEventListener('click', () => { key(b.dataset.k); root.focus(); }));
+
+    const KEYMAP = {
+      Enter: '=', '=': '=', Backspace: 'back', Escape: 'clr',
+      Delete: 'ce', x: '*', X: '*', ',': '.',
+    };
+
+    const dirty = () => err || cur !== '0' || acc !== null || op !== null;
+
+    win.addEventListener('keydown', e => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = KEYMAP[e.key] || e.key;
+      if (!/^([0-9]|\.|\+|-|\*|\/|=|clr|ce|back|neg)$/.test(k)) return;
+      // Esc clears, the way the real one does — but on an already-clear
+      // display it falls through and closes the window like everywhere else
+      if (e.key === 'Escape' && !dirty()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      key(k);
+    });
+
+    defer(() => root.focus({ preventScroll: true }));
+    paint();
+  }
+
+  /* ── §6c1 · SNAKE ────────────────────────────────────────
+     Written here, not embedded — it is small enough to own. Grid of
+     cells on a canvas, a queue for the body, and a turn buffer so a
+     fast double-tap round a corner does not get eaten by the tick. */
+
+  function initSnake(win) {
+    const COLS = 24, ROWS = 18, CELL = 14;
+    const cv = win.querySelector('[data-board]');
+    const ctx = cv.getContext('2d');
+    const scoreEl = win.querySelector('[data-lcd="score"]');
+    const bestEl = win.querySelector('[data-lcd="best"]');
+    const face = win.querySelector('[data-new]');
+    const msg = win.querySelector('[data-msg]');
+
+    cv.width = COLS * CELL;
+    cv.height = ROWS * CELL;
+
+    const pad3 = n => String(Math.max(0, Math.min(999, n))).padStart(3, '0');
+    let best = 0;
+    try { best = parseInt(localStorage.getItem('kvd-snake'), 10) || 0; } catch (_) {}
+
+    let snake, dir, turns, food, score, timer, over, paused, speed;
+
+    const at = (x, y) => snake.some(s => s.x === x && s.y === y);
+
+    function place() {
+      let x, y;
+      do {
+        x = Math.floor(Math.random() * COLS);
+        y = Math.floor(Math.random() * ROWS);
+      } while (at(x, y));
+      food = { x, y };
+    }
+
+    function reset() {
+      snake = [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }];
+      dir = { x: 1, y: 0 };
+      turns = [];
+      score = 0; over = false; paused = false; speed = 140;
+      face.textContent = '▶';
+      msg.textContent = 'Arrow keys or WASD · P pauses';
+      place();
+      run();
+      draw();
+      paint();
+    }
+
+    function run() {
+      clearInterval(timer);
+      timer = setInterval(tick, speed);
+    }
+
+    function paint() {
+      scoreEl.textContent = pad3(score);
+      bestEl.textContent = pad3(best);
+    }
+
+    function tick() {
+      if (over || paused) return;
+
+      // one queued turn per tick, so a corner taken quickly still lands
+      while (turns.length) {
+        const t = turns.shift();
+        if (t.x !== -dir.x || t.y !== -dir.y) { dir = t; break; }
+      }
+
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+      if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS || at(head.x, head.y)) {
+        lose();
+        return;
+      }
+
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        if (score > best) {
+          best = score;
+          try { localStorage.setItem('kvd-snake', String(best)); } catch (_) {}
+        }
+        if (speed > 62) { speed -= 4; run(); }
+        place();
+        paint();
+      } else {
+        snake.pop();
+      }
+      draw();
+    }
+
+    function lose() {
+      over = true;
+      clearInterval(timer);
+      face.textContent = '↻';
+      msg.textContent = score >= best && score > 0
+        ? `${score} — best yet. Press the button to go again.`
+        : `${score}. Press the button to go again.`;
+      draw();
+    }
+
+    function draw() {
+      ctx.fillStyle = '#0a1a0a';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+
+      ctx.strokeStyle = 'rgba(60,140,60,.14)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 1; x < COLS; x++) { ctx.moveTo(x * CELL + .5, 0); ctx.lineTo(x * CELL + .5, cv.height); }
+      for (let y = 1; y < ROWS; y++) { ctx.moveTo(0, y * CELL + .5); ctx.lineTo(cv.width, y * CELL + .5); }
+      ctx.stroke();
+
+      ctx.fillStyle = '#e02020';
+      ctx.fillRect(food.x * CELL + 3, food.y * CELL + 3, CELL - 6, CELL - 6);
+
+      snake.forEach((s, i) => {
+        ctx.fillStyle = i === 0 ? '#5aff5a' : '#22c022';
+        ctx.fillRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2);
+      });
+
+      if (over) {
+        ctx.fillStyle = 'rgba(0,0,0,.6)';
+        ctx.fillRect(0, cv.height / 2 - 18, cv.width, 36);
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 17px "MS Sans Serif",Tahoma,sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', cv.width / 2, cv.height / 2 + 6);
+      } else if (paused) {
+        ctx.fillStyle = 'rgba(0,0,0,.55)';
+        ctx.fillRect(0, cv.height / 2 - 16, cv.width, 32);
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 15px "MS Sans Serif",Tahoma,sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSED', cv.width / 2, cv.height / 2 + 5);
+      }
+    }
+
+    const KEYS = {
+      ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+      w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0],
+      W: [0, -1], S: [0, 1], A: [-1, 0], D: [1, 0],
+    };
+
+    win.addEventListener('keydown', e => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'p' || e.key === 'P') {
+        if (!over) { paused = !paused; draw(); }
+        e.preventDefault(); e.stopPropagation();
+        return;
+      }
+      if (e.key === 'Enter' && over) { reset(); e.preventDefault(); e.stopPropagation(); return; }
+      const k = KEYS[e.key];
+      if (!k) return;
+      e.preventDefault();
+      e.stopPropagation();          // arrows must not walk the desktop icons
+      if (over || paused) return;
+      if (turns.length < 2) turns.push({ x: k[0], y: k[1] });
+    });
+
+    face.addEventListener('click', reset);
+    cv.addEventListener('pointerdown', () => cv.focus());
+    cv.tabIndex = 0;
+
+    win._cleanup = () => clearInterval(timer);
+    defer(() => cv.focus({ preventScroll: true }));
+    reset();
+  }
+
+  /* ── §6c1b · THE ARCADE ──────────────────────────────────
+     DOOM, DOOM II and the original Grand Theft Auto are DOS binaries.
+     They run here the only way they can in a browser: the Internet
+     Archive's in-page DOSBox, framed. The emulator is not sandboxed —
+     it needs workers, WASM and full keyboard, and archive.org is the
+     host either way — but nothing loads until Start is pressed, so
+     opening the folder does not spin up three emulators.
+
+     Grand Theft Auto is the 1997 DMA Design original. GTA2 is a Win32
+     DirectX title: DOSBox cannot run it and no in-browser build of it
+     exists, which is a technical wall rather than a licensing one. */
+
+  const ARCADE = {
+    doom:  ['DOOM', 'doom', 'DoomsharewareEpisode',
+            'id Software, 1993 — Episode 1, Knee-Deep in the Dead.'],
+    doom2: ['DOOM II', 'doom2', 'doomII',
+            'id Software, 1994 — Hell on Earth.'],
+    gta:   ['Grand Theft Auto', 'gta', 'grand-theft-auto-1997-dma-design',
+            'DMA Design, 1997 — the original top-down one.'],
+  };
+
+  /* One shell for all three, built here rather than up in APPS — ARCADE
+     is a const declared in this section, and the loop has to run after
+     it exists, not before. */
+  Object.keys(ARCADE).forEach(id => {
+    const [name, icon, archiveId, blurb] = ARCADE[id];
+    APPS[id] = {
+      title: name, icon, w: 680, h: 500, flush: true,
+      body: `
+        <div class="arc" data-arc="${archiveId}">
+          <div class="arc__start">
+            ${I[icon].replace('width="32" height="32"', 'width="52" height="52"')}
+            <h3>${name}</h3>
+            <p>${blurb}</p>
+            <button class="w98btn arc__go" data-go>Start</button>
+            <p class="arc__note">Runs in DOSBox, streamed from the Internet
+               Archive. Click inside once it loads so it gets the keyboard.</p>
+          </div>
+        </div>`,
+      init: initArcade,
+    };
+  });
+
+  /* GTA2 is the one that will not come inside.
+
+     It is a Win32 DirectX title, so DOSBox cannot run it and there is no
+     in-browser build to frame. The ROM sites that do host it are ad
+     farms: framing arcadespot gets you its logo, its whole navigation,
+     a rating widget and a thumbnail strip, with the game as a grey box
+     in the middle — the opposite of seamless.
+
+     A CSS crop to hide their chrome was measured and abandoned: the game
+     element sits at top 347/363/260/260 and left 20/90/160/304 at iframe
+     widths of 760/900/1040/1200, and its height changes at identical
+     widths as their ad slots reflow above it. Nothing stable to anchor
+     to, and these windows resize. So this one opens outward and says so
+     rather than half-working. */
+  APPS.gta2 = {
+    title: 'Grand Theft Auto 2', icon: 'gta', w: 460, h: 336, flush: true,
+    body: `
+      <div class="arc">
+        <div class="arc__start">
+          ${I.gta.replace('width="32" height="32"', 'width="52" height="52"')}
+          <h3>Grand Theft Auto 2</h3>
+          <p>Rockstar North, 1999. A Windows DirectX game — the DOS emulator
+             that runs the other titles here cannot touch it.</p>
+          <button class="w98btn arc__go"
+            data-ext="https://arcadespot.com/game/grand-theft-auto-2/">Launch</button>
+          <p class="arc__note">Opens in a new browser window, outside the
+             terminal. Everything else in this folder runs in place.</p>
+        </div>
+      </div>`,
+    init(win) {
+      win.querySelector('[data-ext]').addEventListener('click', e =>
+        window.open(e.currentTarget.dataset.ext, '_blank', 'noopener'));
+    },
+  };
+
+  function initArcade(win) {
+    const root = win.querySelector('[data-arc]');
+    const item = root.dataset.arc;
+
+    win.querySelector('[data-go]').addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.className = 'arc__frame';
+      f.title = 'Emulator';
+      f.setAttribute('allow', 'autoplay; fullscreen; gamepad');
+      f.setAttribute('scrolling', 'no');
+      f.src = 'https://archive.org/embed/' + item;
+      root.innerHTML = '';
+      root.appendChild(f);
+      // DOSBox only sees the keyboard once the frame has it
+      defer(() => f.focus());
+    });
+
+    win._cleanup = () => { root.querySelector('iframe')?.remove(); };
+  }
+
+  /* ── §6c2 · INTERNET EXPLORER ────────────────────────────
+     A real browser over a web that is not real.
+
+     It cannot fetch anything, and that is not a shortcut: a static page
+     has no proxy to fetch through, and every site worth loading sends
+     X-Frame-Options that would refuse the frame anyway. What it does do
+     is *browse* — history with working back and forward, a stop that
+     actually cancels the load, refresh, an address bar that resolves
+     hostnames, and the genuine "page cannot be displayed" when it can't.
+     Type a real URL and it hands it to your actual browser rather than
+     pretending.
+
+     The pages are the portfolio again, written the way a personal site
+     was written in 1998. ✎ to edit. */
+
+  const IE_HOME = 'http://kvd.local/';
+
+  const page = (title, body) => ({ title, body });
+
+  const SITES = {
+    'kvd.local': page('Mann Kuvadiya :: Ground Station', `
+      <center>
+        <h1 class="ie-h1">MANN KUVADIYA</h1>
+        <p class="ie-tag">~ ground station software &middot; embedded systems ~</p>
+        <hr class="ie-rule">
+      </center>
+      <p><b>Welcome to my homepage!</b> This station tracks small satellites and
+         writes the software that talks to them. Pull up a chair.</p>
+      <table class="ie-nav">
+        <tr>
+          <td><a data-href="http://kvd.local/missions">Missions</a></td>
+          <td><a data-href="http://kvd.local/station">The Station</a></td>
+          <td><a data-href="http://kvd.local/downlink">Downlink</a></td>
+          <td><a data-href="http://kvd.local/guestbook">Guestbook</a></td>
+        </tr>
+      </table>
+      <p>Last updated: whenever the pass window closed.</p>
+      <hr class="ie-rule">
+      <h2 class="ie-h2">Out on the wire</h2>
+      <p>This browser does reach the real internet &mdash; the page below the
+         chrome is rendered by the engine you are actually running. Sites that
+         forbid being framed will say so; plenty do not:</p>
+      <ul>
+        <li><a data-href="https://info.cern.ch/hypertext/WWW/TheProject.html">The
+            first website ever published</a> (CERN, 1991)</li>
+        <li><a data-href="https://wiby.me">Wiby</a> &mdash; a search engine for
+            pages built like this one</li>
+        <li><a data-href="https://www.spacejam.com/1996/">Space Jam</a>, still up,
+            still 1996</li>
+      </ul>
+      <p>More under <b>Favorites</b> in the menu bar.</p>
+      <hr class="ie-rule">
+      <center>
+        <p class="ie-small">You are visitor number
+          <span class="ie-counter">0000<b>7</b><b>3</b><b>1</b></span></p>
+        <p class="ie-small">Best viewed at 800&times;600 &middot; This site is
+          <b>Lynx friendly</b></p>
+      </center>`),
+
+    'kvd.local/missions': page('Missions', `
+      <h2 class="ie-h2">Mission log</h2>
+      <hr class="ie-rule">
+      <table class="ie-table">
+        <tr><th>Desig</th><th>Name</th><th>Year</th><th>Status</th></tr>
+        <tr><td>MSN-01</td><td>SomaiyaSAT Ground Station</td><td>2025</td><td>LIVE</td></tr>
+        <tr><td>MSN-02</td><td>Climate Atlas</td><td>2025</td><td>LIVE</td></tr>
+        <tr><td>MSN-03</td><td>WX-Relay</td><td>2024</td><td>ARCHIVE</td></tr>
+        <tr><td>MSN-04</td><td>Untitled</td><td>2026</td><td>BUILD</td></tr>
+      </table>
+      <p>Full write-ups are in the <a data-href="http://kvd.local/">Projects</a>
+         folder on the desktop, or on
+         <a data-href="https://github.com/Bladekiller246">GitHub</a>.</p>
+      <p><a data-href="http://kvd.local/">&laquo; Back to the index</a></p>`),
+
+    'kvd.local/station': page('The Station', `
+      <h2 class="ie-h2">About the station</h2>
+      <hr class="ie-rule">
+      <p>An engineering student who got pulled into this by a radio and a
+         soldering iron, and never really left. Most of what gets built here
+         sits on the seam between a physical device and the person trying to
+         understand it &mdash; firmware on one end, a legible interface on the
+         other.</p>
+      <table class="ie-table">
+        <tr><th>Based</th><td>Mumbai, IN &middot; UTC+5:30</td></tr>
+        <tr><th>Focus</th><td>Embedded &middot; RF &middot; Data interfaces</td></tr>
+        <tr><th>Learning</th><td>Rust, SDR signal chains</td></tr>
+        <tr><th>Status</th><td>Open to internships</td></tr>
+      </table>
+      <p><a data-href="http://kvd.local/">&laquo; Back to the index</a></p>`),
+
+    'kvd.local/downlink': page('Downlink', `
+      <h2 class="ie-h2">Open a downlink</h2>
+      <hr class="ie-rule">
+      <p>The station listens on all of these. Mail gets the fastest reply.</p>
+      <table class="ie-table">
+        <tr><th>Mail</th><td><a data-href="mailto:mannkuvadiya2006@gmail.com">mannkuvadiya2006@gmail.com</a></td></tr>
+        <tr><th>GitHub</th><td><a data-href="https://github.com/Bladekiller246">github.com/Bladekiller246</a></td></tr>
+      </table>
+      <p><a data-href="http://kvd.local/">&laquo; Back to the index</a></p>`),
+
+    'kvd.local/guestbook': page('Guestbook', `
+      <h2 class="ie-h2">Sign my guestbook</h2>
+      <hr class="ie-rule">
+      <p>Nothing here is sent anywhere and nothing is stored. There is no
+         server on the other end of this window &mdash; it is a page inside a
+         browser inside a terminal on somebody's desk.</p>
+      <table class="ie-form">
+        <tr><th>Name</th><td><input class="w98input" data-gb spellcheck="false"></td></tr>
+        <tr><th>Homepage</th><td><input class="w98input" data-gb spellcheck="false" value="http://"></td></tr>
+        <tr><th>Message</th><td><textarea class="w98input" rows="3" data-gb spellcheck="false"></textarea></td></tr>
+      </table>
+      <p><button class="w98btn" data-gbsign>Sign it</button>
+         <span class="ie-note" data-gbout></span></p>
+      <p><a data-href="http://kvd.local/">&laquo; Back to the index</a></p>`),
+  };
+
+  const IE_404 = title => page('Cannot find server', `
+    <h2 class="ie-h2">The page cannot be displayed</h2>
+    <hr class="ie-rule">
+    <p>The page you are looking for is currently unavailable. The site might be
+       experiencing technical difficulties, or you may need to adjust your
+       browser settings.</p>
+    <p class="ie-note">Cannot find server or DNS Error &mdash;
+       <b>${esc(title)}</b></p>
+    <hr class="ie-rule">
+    <p>Please try the following:</p>
+    <ul>
+      <li>Check that the address is spelled correctly.</li>
+      <li>Go to <a data-href="http://kvd.local/">the station index</a>.</li>
+      <li>Accept that this terminal has no uplink to anywhere but itself.</li>
+    </ul>`);
+
+  /* Shown when the site refuses to be framed. Not a failure of this
+     browser — the site sent X-Frame-Options or a frame-ancestors policy
+     and the engine obeyed it, which is the whole point of those headers
+     and cannot be worked around from a page. */
+  const IE_REFUSED = (url, why) => page('Connection refused', `
+    <h2 class="ie-h2">${esc(why)}</h2>
+    <hr class="ie-rule">
+    <p><b>${esc(url)}</b> would not open in this window.</p>
+    <p class="ie-note">Most large sites send <b>X-Frame-Options</b> or a
+       <b>frame-ancestors</b> policy telling browsers never to display them
+       inside another page. Your browser is obeying that, correctly, and no
+       amount of code on this side can override it.</p>
+    <hr class="ie-rule">
+    <p>Plenty of the web does allow it — try <b>Favorites</b> in the menu bar.
+       Or open this one properly:</p>
+    <p><button class="w98btn" data-external="${esc(url)}">Open ${esc(url)} in a new window</button></p>
+    <p><a data-href="http://kvd.local/">&laquo; Back to the station</a></p>`);
+
+  /* Hosts known to forbid framing, so the refusal page can be shown at
+     once and be *right* rather than guessing.
+
+     A page cannot detect the refusal itself. Measured, not assumed: for
+     a frame the engine blocked and a frame that loaded fine, every
+     readable signal is identical — `contentWindow.location` throws the
+     same SecurityError, `contentDocument` is null for both, `length` is
+     0 for both, and timing is no help either (blocked neocities.org
+     took 923 ms; working example.com took 85 ms). The browser logs the
+     reason to the console and exposes nothing to script.
+
+     So: this list for the sites people actually try, an optimistic load
+     for everything else, and an always-available "open properly"
+     button for whatever slips through. Not exhaustive and cannot be. */
+  const IE_DENY = [
+    'google.com', 'google.co.in', 'gmail.com', 'youtube.com', 'github.com',
+    'facebook.com', 'instagram.com', 'x.com', 'twitter.com', 'linkedin.com',
+    'reddit.com', 'amazon.com', 'amazon.in', 'netflix.com', 'apple.com',
+    'microsoft.com', 'live.com', 'outlook.com', 'bing.com', 'stackoverflow.com',
+    'neocities.org', 'openai.com', 'chatgpt.com', 'anthropic.com', 'claude.ai',
+    'notion.so', 'figma.com', 'twitch.tv', 'discord.com', 'whatsapp.com',
+  ];
+
+  /* Some hosts refuse their normal pages but publish a framable embed —
+     worth rewriting rather than refusing. */
+  function ieRewrite(u) {
+    const yt = u.match(/^https?:\/\/(?:www\.)?youtube\.com\/watch\?(?:.*&)?v=([\w-]{6,})/i)
+            || u.match(/^https?:\/\/youtu\.be\/([\w-]{6,})/i);
+    if (yt) return 'https://www.youtube.com/embed/' + yt[1];
+    return u;
+  }
+
+  /* Verified framable at the time of writing — checked by reading their
+     response headers, not by guessing. A site can add the header any
+     day, which is what the refusal page above is for. */
+  const IE_FAVS = [
+    ['The first website (CERN, 1991)', 'https://info.cern.ch/hypertext/WWW/TheProject.html'],
+    ['Wikipedia — Cathode-ray tube', 'https://en.wikipedia.org/wiki/Cathode-ray_tube'],
+    ['Wikipedia — random article', 'https://en.wikipedia.org/wiki/Special:Random'],
+    ['Space Jam (1996)', 'https://www.spacejam.com/1996/'],
+    ["Cameron's World", 'https://cameronsworld.net'],
+    ['Wiby — search the old web', 'https://wiby.me'],
+    ['Internet Archive', 'https://archive.org'],
+    ['RFC 1149 — IP over avian carriers', 'https://www.rfc-editor.org/rfc/rfc1149.txt'],
+    ['example.com', 'https://example.com'],
+  ];
+
+  function initIE(win) {
+    const view   = win.querySelector('[data-page]');
+    const frame  = win.querySelector('[data-frame]');
+    const urlIn  = win.querySelector('[data-url]');
+    const status = win.querySelector('[data-status]');
+    const prog   = win.querySelector('[data-progress]');
+    const throb  = win.querySelector('[data-throb]');
+    const favBox = win.querySelector('[data-favs]');
+    const nav    = k => win.querySelector('[data-nav="' + k + '"]');
+
+    const hist = [];
+    let at = -1;
+    let load = null;        // { timer, url, live }
+    let want = null;        // the url the iframe is currently trying
+
+    // "kvd.local/missions" — the key SITES is written in
+    const keyOf = u => u.replace(/^[a-z]+:\/\//i, '').replace(/\/+$/, '').toLowerCase();
+    const isLocal = u => /^https?:\/\/kvd\.local(\/|$)/i.test(u);
+
+    function normalise(raw) {
+      let u = String(raw).trim();
+      if (!u) return '';
+      if (/^(mailto|tel):/i.test(u)) return u;
+      if (!/^[a-z]+:\/\//i.test(u)) u = 'https://' + u;
+      return u;
+    }
+
+    function setTitle(t) {
+      win.querySelector('.w98title b').textContent = t + ' - Internet Explorer';
+      const task = open.get('ie')?.task?.querySelector('span');
+      if (task) task.textContent = t;
+    }
+
+    function paintNav() {
+      nav('back').disabled = at <= 0;
+      nav('fwd').disabled = at >= hist.length - 1;
+      nav('stop').disabled = !load;
+      const live = hist[at] && !isLocal(hist[at]);
+      nav('pop').disabled = !live;
+    }
+
+    function stop() {
+      if (!load) return;
+      clearInterval(load.timer);
+      clearTimeout(load.giveUp);
+      load = null;
+      want = null;
+      throb.classList.remove('is-spin');
+      prog.style.width = '0%';
+      status.textContent = 'Stopped';
+      paintNav();
+    }
+
+    /* ── local pages ── */
+    function drawLocal(u, p) {
+      frame.hidden = true;
+      frame.removeAttribute('src');
+      view.hidden = false;
+      view.innerHTML = p.body;
+      view.scrollTop = 0;
+      setTitle(p.title);
+      wirePage();
+      finish();
+    }
+
+    function finish() {
+      if (load) { clearInterval(load.timer); clearTimeout(load.giveUp); }
+      load = null; want = null;
+      throb.classList.remove('is-spin');
+      prog.style.width = '0%';
+      status.textContent = 'Done';
+      paintNav();
+    }
+
+    /* ── the real web ── */
+
+    const hostOf = u => { try { return new URL(u).hostname.toLowerCase(); } catch (_) { return ''; } };
+    const denied = u => {
+      const h = hostOf(u);
+      return IE_DENY.some(d => h === d || h.endsWith('.' + d));
+    };
+
+    function showRefusal(u, why) {
+      frame.hidden = true;
+      frame.removeAttribute('src');
+      view.hidden = false;
+      view.innerHTML = IE_REFUSED(u, why).body;
+      view.scrollTop = 0;
+      setTitle('Connection refused');
+      wirePage();
+      finish();
+    }
+
+    function settleLive(u, why) {
+      if (want !== u) return;
+      if (why === 'timeout') {
+        showRefusal(u, 'The page is taking too long to respond');
+        return;
+      }
+      setTitle(u.replace(/^https?:\/\//, '').replace(/\/$/, ''));
+      finish();
+    }
+
+    frame.addEventListener('load', () => { if (want) settleLive(want, 'load'); });
+
+    function drawLive(u) {
+      // an https page cannot pull in an http frame, and the engine will
+      // not say why — so say it first
+      if (location.protocol === 'https:' && /^http:\/\//i.test(u)) {
+        showRefusal(u, 'This page is secure and that address is not');
+        return;
+      }
+      if (denied(u)) {
+        showRefusal(u, 'The site refuses to open inside another page');
+        return;
+      }
+      view.hidden = true;
+      frame.hidden = false;
+      want = u;
+      frame.src = u;
+      if (load) load.giveUp = setTimeout(() => settleLive(u, 'timeout'), 12000);
+    }
+
+    function go(raw, push) {
+      let u = normalise(raw);
+      if (!u) return;
+      if (/^mailto:/i.test(u)) { window.open(u); return; }
+      if (!isLocal(u)) u = ieRewrite(u);
+
+      stop();
+      if (push !== false) {
+        hist.splice(at + 1);
+        hist.push(u);
+        at = hist.length - 1;
+      }
+      urlIn.value = u;
+      closeFavs();
+
+      const local = isLocal(u) ? (SITES[keyOf(u)] || IE_404(u)) : null;
+
+      let pct = 0;
+      status.textContent = 'Opening page ' + u + '…';
+      throb.classList.add('is-spin');
+      load = { url: u, live: !local };
+      paintNav();
+
+      load.timer = setInterval(() => {
+        // a local page runs to 100 on its own; a live one eases toward 90
+        // and waits for the engine to actually finish
+        pct += local ? 8 + Math.random() * 22 : (90 - pct) * 0.13;
+        if (local && pct >= 100) { drawLocal(u, local); return; }
+        prog.style.width = Math.min(pct, 96) + '%';
+      }, 55);
+
+      if (!local) drawLive(u);
+    }
+
+    /* ── Favorites ── */
+    favBox.innerHTML = IE_FAVS
+      .map(f => `<button data-fav="${esc(f[1])}">${esc(f[0])}</button>`).join('') +
+      `<hr><button data-fav="${IE_HOME}">The station index</button>`;
+
+    const closeFavs = () => { favBox.hidden = true; };
+    favBox.querySelectorAll('[data-fav]').forEach(b =>
+      b.addEventListener('click', () => { closeFavs(); go(b.dataset.fav); }));
+
+    const favMenu = [...win.querySelectorAll('.w98menubar span')]
+      .find(s => /Favorites/i.test(s.textContent));
+    favMenu?.addEventListener('click', e => {
+      e.stopPropagation();
+      favBox.hidden = !favBox.hidden;
+      if (!favBox.hidden) {
+        const m = favMenu.getBoundingClientRect();
+        const w = win.getBoundingClientRect();
+        favBox.style.left = (m.left - w.left) + 'px';
+        favBox.style.top = (m.bottom - w.top) + 'px';
+      }
+    });
+    win.addEventListener('pointerdown', e => {
+      if (!favBox.hidden && !e.target.closest('[data-favs]')) closeFavs();
+    });
+
+    function wirePage() {
+      view.querySelectorAll('[data-href]').forEach(a => {
+        a.addEventListener('click', e => { e.preventDefault(); go(a.dataset.href); });
+        a.addEventListener('mouseenter', () => { status.textContent = a.dataset.href; });
+        a.addEventListener('mouseleave', () => { status.textContent = 'Done'; });
+      });
+      view.querySelectorAll('[data-external]').forEach(b =>
+        b.addEventListener('click', () =>
+          window.open(b.dataset.external, '_blank', 'noopener')));
+
+      const sign = view.querySelector('[data-gbsign]');
+      if (sign) {
+        sign.addEventListener('click', () => {
+          const out = view.querySelector('[data-gbout]');
+          const name = view.querySelector('[data-gb]');
+          out.textContent = name && name.value.trim()
+            ? `Thanks, ${name.value.trim()} — nothing was sent, and nothing was kept.`
+            : 'Nothing was sent, and nothing was kept.';
+        });
+      }
+    }
+
+    nav('back').addEventListener('click', () => { if (at > 0) { at--; go(hist[at], false); } });
+    nav('fwd').addEventListener('click', () => { if (at < hist.length - 1) { at++; go(hist[at], false); } });
+    nav('reload').addEventListener('click', () => { if (hist[at]) go(hist[at], false); });
+    nav('home').addEventListener('click', () => go(IE_HOME));
+    nav('stop').addEventListener('click', stop);
+    nav('go').addEventListener('click', () => go(urlIn.value));
+    nav('pop').addEventListener('click', () => {
+      if (hist[at]) window.open(hist[at], '_blank', 'noopener');
+    });
+
+    urlIn.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter') { e.preventDefault(); go(urlIn.value); }
+    });
+    urlIn.addEventListener('focus', () => urlIn.select());
+
+    win._cleanup = () => { stop(); frame.removeAttribute('src'); };
+    go(IE_HOME);
+  }
+
+  /* ── §6c3 · CALENDAR ─────────────────────────────────────
+     The Date/Time control panel, which is where a calendar lived in
+     1998. Read-only about the machine's clock — it shows the host's
+     time and will not try to set it. */
+
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                  'August', 'September', 'October', 'November', 'December'];
+
+  function initCalendar(win) {
+    const q = k => win.querySelector('[data-cal="' + k + '"]');
+    const monthSel = q('month'), yearIn = q('year'), grid = q('grid'), clock = q('clock');
+
+    const today = new Date();
+    let y = today.getFullYear(), m = today.getMonth();
+    let picked = today.getDate();
+
+    monthSel.innerHTML = MONTHS
+      .map((n, i) => `<option value="${i}">${n}</option>`).join('');
+
+    function render() {
+      monthSel.value = String(m);
+      yearIn.value = String(y);
+
+      const first = new Date(y, m, 1).getDay();          // 0 = Sunday
+      const days = new Date(y, m + 1, 0).getDate();
+      const isNow = (d) => y === today.getFullYear() && m === today.getMonth()
+                        && d === today.getDate();
+
+      let html = '', cell = 0;
+      for (let row = 0; row < 6; row++) {
+        html += '<tr>';
+        for (let col = 0; col < 7; col++, cell++) {
+          const d = cell - first + 1;
+          if (d < 1 || d > days) { html += '<td></td>'; continue; }
+          const cls = [d === picked ? 'is-sel' : '', isNow(d) ? 'is-today' : '']
+            .filter(Boolean).join(' ');
+          html += `<td><button class="cal__d ${cls}" data-d="${d}">${d}</button></td>`;
+        }
+        html += '</tr>';
+        if (cell >= first + days) break;
+      }
+      grid.innerHTML = html;
+
+      grid.querySelectorAll('.cal__d').forEach(b =>
+        b.addEventListener('click', () => { picked = +b.dataset.d; render(); }));
+    }
+
+    function shift(by) {
+      m += by;
+      while (m < 0) { m += 12; y--; }
+      while (m > 11) { m -= 12; y++; }
+      render();
+    }
+
+    q('prev').addEventListener('click', () => shift(-1));
+    q('next').addEventListener('click', () => shift(1));
+    monthSel.addEventListener('change', () => { m = +monthSel.value; render(); });
+    yearIn.addEventListener('change', () => {
+      const v = parseInt(yearIn.value, 10);
+      if (v >= 1601 && v <= 9999) { y = v; } // the range the real dialog took
+      render();
+    });
+    yearIn.addEventListener('keydown', e => e.stopPropagation());
+    q('today').addEventListener('click', () => {
+      y = today.getFullYear(); m = today.getMonth(); picked = today.getDate();
+      render();
+    });
+
+    const tickClockFace = () => {
+      clock.textContent = new Date().toLocaleTimeString();
+    };
+    tickClockFace();
+    const t = setInterval(tickClockFace, 1000);
+    win._cleanup = () => clearInterval(t);
+
+    render();
+  }
+
+  /* ── §6d · MS-DOS PROMPT ─────────────────────────────────
+     A:\ is the portfolio, as plain text. Directories are objects,
+     files are strings — that is the whole filesystem. */
+
+  const DOS_FS = {
+    'README.TXT': [
+      'KVD-4400 / guest session',
+      '',
+      'Everything on this volume is the portfolio, in the format it was',
+      'probably written in first. DIR to look around, TYPE to read.',
+      'CD PROJECTS for the mission files.',
+    ].join('\n'),
+
+    'ABOUT.TXT': ABOUT_TEXT,
+
+    'SKILLS.TXT': [
+      'EMBEDDED ...... C, C++, ESP32, STM32, FreeRTOS',
+      'WEB ........... TypeScript, React, Next.js, Tailwind',
+      'DATA .......... Python, pandas, PostgreSQL, PostGIS',
+      'RADIO ......... GNU Radio, SDR, LoRa, packet decode',
+      'INFRA ......... Docker, Linux, Git, CI pipelines',
+      'RUST .......... loading, 61% complete',
+    ].join('\n'),
+
+    'CONTACT.TXT': [
+      'MAIL ........ mannkuvadiya2006@gmail.com',
+      'GITHUB ...... github.com/...',
+      'LINKEDIN .... linkedin.com/in/...',
+      'RESUME ...... resume.pdf',
+      '',
+      'Mail gets the fastest reply.',
+    ].join('\n'),
+
+    PROJECTS: {
+      'SOMAIYA.TXT': [
+        'MSN-01  SomaiyaSAT Ground Station  (2025, LIVE)',
+        '',
+        'Web console for a student CubeSat program: live pass prediction,',
+        'decoded telemetry, and a command queue that survives a dropped link.',
+        '',
+        'Built with: Next.js, Python, WebSocket, SGP4',
+      ].join('\n'),
+      'ATLAS.TXT': [
+        'MSN-02  Climate Atlas  (2025, LIVE)',
+        '',
+        'Geospatial dashboard over four decades of station data. PostGIS on',
+        'the back, tiled vector rendering on the front, no loading spinner',
+        'longer than a heartbeat.',
+        '',
+        'Built with: PostGIS, FastAPI, MapLibre',
+      ].join('\n'),
+      'WXRELAY.TXT': [
+        'MSN-03  WX-Relay  (2024, ARCHIVE)',
+        '',
+        'Solar-powered weather node that reports over LoRa. Sleeps at 40 uA,',
+        'wakes on the quarter hour, and has not needed a battery swap since',
+        'the day it went up.',
+        '',
+        'Built with: ESP32, LoRa, C++',
+      ].join('\n'),
+      'UNTITLED.TXT': [
+        'MSN-04  Untitled  (2026, BUILD)',
+        '',
+        'Placeholder slot. Swap in whatever is mid-way through; the volume',
+        'reads better with something unfinished on it.',
+      ].join('\n'),
+    },
+  };
+
+  const DOS_HELP = [
+    'CD [dir]     change directory (CD .. goes up, CD \\ goes to the root)',
+    'CLS          clear the screen',
+    'DIR          list this directory',
+    'ECHO text    print text',
+    'EXIT         close this prompt',
+    'HELP         this list',
+    'START app    open a program (try START WINMINE)',
+    'TIME / DATE  the host clock',
+    'TREE         the whole volume at once',
+    'TYPE file    print a file',
+    'VER          version',
+  ].join('\n');
+
+  const isDir = node => node && typeof node === 'object';
+
+  function initDos(win) {
+    const pane   = win.querySelector('[data-dos]');
+    const log    = win.querySelector('[data-log]');
+    const input  = win.querySelector('[data-in]');
+    const label  = win.querySelector('[data-prompt]');
+
+    let cwd = [];                       // path below A:\PORTFOLIO
+    const hist = [];
+    let hi = 0;
+
+    const node = () => cwd.reduce((n, seg) => n[seg], DOS_FS);
+    const cwdText = () => 'A:\\PORTFOLIO' + cwd.map(s => '\\' + s).join('');
+
+    const echo = t => {
+      log.textContent += t + '\n';
+      pane.scrollTop = pane.scrollHeight;
+    };
+
+    function dir() {
+      const here = node();
+      const names = Object.keys(here);
+      const dirs = names.filter(n => isDir(here[n]));
+      const files = names.filter(n => !isDir(here[n]));
+      const rows = [
+        ' Volume in drive A is PORTFOLIO',
+        '',
+        ' Directory of ' + cwdText(),
+        '',
+        '.            <DIR>',
+        cwd.length ? '..           <DIR>' : null,
+        ...dirs.map(n => n.padEnd(13) + '<DIR>'),
+        ...files.map(n => n.padEnd(13) + String(here[n].length).padStart(9) + '  bytes'),
+        '',
+        `      ${files.length} file(s)   ${dirs.length} dir(s)`,
+      ].filter(r => r !== null);
+      echo(rows.join('\n'));
+    }
+
+    function tree(here, prefix) {
+      Object.keys(here).forEach((n, i, all) => {
+        const last = i === all.length - 1;
+        echo(prefix + (last ? '\\---' : '+---') + n);
+        if (isDir(here[n])) tree(here[n], prefix + (last ? '    ' : '|   '));
+      });
+    }
+
+    const START = {
+      winmine: 'mines', minesweeper: 'mines', calc: 'calc', calculator: 'calc',
+      notepad: 'about', explorer: 'projects', control: 'display',
+      devmgr: 'skills', mail: 'contact', help: 'help',
+      iexplore: 'ie', ie: 'ie', calendar: 'calendar', timedate: 'calendar',
+      snake: 'snake', doom: 'doom', doom2: 'doom2', gta: 'gta', gta2: 'gta2',
+      games: 'games',
+    };
+
+    function run(raw) {
+      const line = raw.trim();
+      if (!line) return;
+      const [head, ...rest] = line.split(/\s+/);
+      const cmd = head.toLowerCase();
+      const arg = rest.join(' ');
+      const here = node();
+
+      if (cmd === 'help' || cmd === '?') return echo(DOS_HELP);
+      if (cmd === 'cls') { log.textContent = ''; return; }
+      if (cmd === 'ver') return echo('\nKVD-DOS 7.10  [Version 4.10.1998]\n');
+      if (cmd === 'dir') return dir();
+      if (cmd === 'echo') return echo(arg || 'ECHO is on.');
+      if (cmd === 'date') return echo('Current date is ' + new Date().toDateString());
+      if (cmd === 'time') return echo('Current time is ' + new Date().toLocaleTimeString());
+      if (cmd === 'tree') { echo(cwdText()); return tree(here, ''); }
+      if (cmd === 'exit') return closeApp('dos');
+      if (cmd === 'win') return echo('Windows is already running.');
+      if (cmd === 'mem') return echo('  655,360 bytes total conventional memory\n' +
+                                     '  640,112 bytes free, which was plenty in 1998.');
+      if (cmd === 'format') return echo('You are a guest. Nice try.');
+
+      if (cmd === 'start') {
+        const id = START[arg.toLowerCase()];
+        if (!id) return echo('Cannot find ' + (arg || 'that') + '.');
+        openApp(id);
+        return;
+      }
+
+      if (cmd === 'cd' || cmd === 'chdir') {
+        if (!arg || arg === '.') return echo(cwdText());
+        if (arg === '\\' || arg === '/') { cwd = []; }
+        else if (arg === '..') { cwd.pop(); }
+        else {
+          const key = Object.keys(here).find(n => n.toLowerCase() === arg.toLowerCase());
+          if (!key || !isDir(here[key])) return echo('Invalid directory');
+          cwd.push(key);
+        }
+        label.textContent = cwdText() + '>';
+        return;
+      }
+
+      if (cmd === 'type' || cmd === 'cat' || cmd === 'more') {
+        const key = Object.keys(here).find(n => n.toLowerCase() === arg.toLowerCase());
+        if (!key) return echo('File not found - ' + (arg || ''));
+        if (isDir(here[key])) return echo('Access denied - ' + key + ' is a directory.');
+        return echo('\n' + here[key] + '\n');
+      }
+
+      // an unrecognised filename is still worth trying to open
+      const guess = Object.keys(here).find(n => n.toLowerCase() === cmd);
+      if (guess && !isDir(here[guess])) return echo('\n' + here[guess] + '\n');
+
+      echo("Bad command or file name - " + head.toUpperCase());
+    }
+
+    const submit = () => {
+      const raw = input.value;
+      input.value = '';
+      echo(label.textContent + ' ' + raw);
+      if (raw.trim()) { hist.push(raw); hi = hist.length; }
+      run(raw);
+    };
+
+    input.addEventListener('keydown', e => {
+      e.stopPropagation();                       // Esc belongs to the prompt
+      if (e.key === 'Enter') { e.preventDefault(); submit(); }
+      else if (e.key === 'ArrowUp' && hi > 0) { input.value = hist[--hi]; e.preventDefault(); }
+      else if (e.key === 'ArrowDown') {
+        hi = Math.min(hi + 1, hist.length);
+        input.value = hist[hi] || '';
+        e.preventDefault();
+      } else if (e.key === 'Escape') { input.value = ''; }
+    });
+
+    // clicking anywhere in the black puts the caret back on the line
+    pane.addEventListener('pointerup', e => {
+      if (getSelection().isCollapsed && !e.target.closest('.dos__in')) input.focus();
+    });
+
+    log.textContent =
+      'KVD-DOS 7.10  [Version 4.10.1998]\n' +
+      '(C) Copyright KVD Systems 1981-1998\n\n' +
+      "Type HELP for a list of commands. Type DIR to look around.\n\n";
+    label.textContent = cwdText() + '>';
+    defer(() => input.focus({ preventScroll: true }));
+  }
+
+  /* ── §6e · DESKTOP CONTEXT MENU ──────────────────────────── */
 
   let ctxEl = null;
   let iconOrder = null;
@@ -906,10 +2175,18 @@
 
   function tickClock() {
     if (!clockEl) return;
-    clockEl.textContent = new Date()
+    const now = new Date();
+    clockEl.textContent = now
       .toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       .replace(/\s/g, ' ');
+    // hovering the tray clock shows the date, same as the real shell
+    clockEl.title = now.toLocaleDateString([], {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
   }
+
+  // and double-clicking it opens Date/Time, same as the real shell
+  clockEl?.addEventListener('dblclick', () => openApp('calendar'));
 
   function buildSpeaker() {
     const tray = clockEl?.parentElement;
@@ -917,15 +2194,26 @@
     const b = document.createElement('button');
     b.className = 'w98spk';
     b.innerHTML = I.speaker.replace('width="32" height="32"', 'width="15" height="15"');
-    b.setAttribute('aria-pressed', muted ? 'true' : 'false');
-    b.title = muted ? 'Sound off' : 'Sound on';
+
+    const paint = () => {
+      const a = snd();
+      const off = !a || a.muted || a.volume === 0;
+      b.setAttribute('aria-pressed', off ? 'true' : 'false');
+      b.title = off ? 'Sound off' : `Volume ${Math.round(a.volume * 100)}% — the TUBE knob turns it`;
+    };
+
     b.addEventListener('click', () => {
-      muted = !muted;
-      b.setAttribute('aria-pressed', muted ? 'true' : 'false');
-      b.title = muted ? 'Sound off' : 'Sound on';
-      try { localStorage.setItem('kvd-mute', muted ? '1' : '0'); } catch (_) {}
-      if (!muted) { ensureAudio(); playChime(); }
+      const a = snd();
+      if (!a) return;
+      a.ensure();
+      a.muted = !a.muted;
+      paint();
+      if (!a.muted) playChime();
     });
+
+    // the knob is the other way to change this
+    document.addEventListener('kvd:volume', paint);
+    paint();
     tray.insertBefore(b, clockEl);
   }
 
@@ -938,16 +2226,54 @@
     if (first) first.focus({ preventScroll: true });
   }
 
+  /* ── §7b · LIVE MISSION MANIFEST ────────────────────────
+     github.js fires this once the API answers, with the same list
+     CH3 got. Until then — and for good if the fetch never lands —
+     the authored APPS entries above stand. */
+
+  document.addEventListener('kvd:projects', e => {
+    const list = e.detail;
+    if (!Array.isArray(list) || !list.length) return;
+
+    // the authored proj1..proj4 are replaced wholesale, not merged: a
+    // half-live folder listing would be lying about which is which
+    Object.keys(APPS).forEach(k => { if (/^proj\d+$/.test(k)) delete APPS[k]; });
+
+    list.forEach((m, i) => {
+      APPS['proj' + (i + 1)] = {
+        title: m.name, icon: 'doc', w: 440, h: 260, pane: true, body: `
+          <h4>${esc(m.name)}${m.year ? ' — ' + esc(m.year) : ''}</h4>
+          <p>${esc(m.desc)}</p>
+          <p><b>Built with:</b> ${esc(m.tags.join(', ')) || 'not stated'}<br>
+             <b>Status:</b> ${esc(m.label)}</p>
+          <p><a href="${esc(m.url)}" target="_blank" rel="noopener">${
+            esc(m.url.replace(/^https?:\/\//, ''))}</a></p>`,
+      };
+    });
+
+    APPS.projects.body = '<div class="w98list">' +
+      list.map((m, i) => item('doc', m.name + '.prj', 'proj' + (i + 1))).join('') +
+      '</div>';
+    APPS.projects.status = [list.length + ' object(s)', '  '];
+
+    // a folder already on screen is showing the old listing
+    if (open.has('projects')) { closeApp('projects'); openApp('projects'); }
+  });
+
   /* ── §8 · START MENU ────────────────────────────────────── */
 
   const MENU = [
-    { label: 'Programs',   icon: 'folder',   act: () => openApp('projects') },
-    { label: 'Documents',  icon: 'doc',      act: () => openApp('about') },
-    { label: 'Minesweeper', icon: 'mine',    act: () => openApp('mines') },
-    { label: 'Settings',   icon: 'gear',     act: () => openApp('display') },
-    { label: 'Find',       icon: 'find',     act: () => openApp('skills') },
-    { label: 'Help',       icon: 'help',     act: () => openApp('help') },
-    { label: 'Run...',     icon: 'run',      act: () => openApp('run') },
+    { label: 'Programs',    icon: 'folder', act: () => openApp('projects') },
+    { label: 'Documents',   icon: 'doc',    act: () => openApp('about') },
+    { label: 'Internet Explorer', icon: 'ie', act: () => openApp('ie') },
+    { label: 'MS-DOS Prompt', icon: 'dos',  act: () => openApp('dos') },
+    { label: 'Calculator',  icon: 'calc',   act: () => openApp('calc') },
+    { label: 'Calendar',    icon: 'cal',    act: () => openApp('calendar') },
+    { label: 'Games',       icon: 'folder', act: () => openApp('games') },
+    { label: 'Settings',    icon: 'gear',   act: () => openApp('display') },
+    { label: 'Find',        icon: 'find',   act: () => openApp('skills') },
+    { label: 'Help',        icon: 'help',   act: () => openApp('help') },
+    { label: 'Run...',      icon: 'run',    act: () => openApp('run') },
     { rule: true },
     { label: 'Log Off Guest…', icon: 'key',   act: openGate },
     { label: 'Shut Down…',     icon: 'power', act: backToTerminal },
@@ -971,8 +2297,28 @@
     });
   }
 
-  function openMenu() { menu.hidden = false; startBtn.setAttribute('aria-expanded', 'true'); }
-  function closeMenu() { menu.hidden = true; startBtn.setAttribute('aria-expanded', 'false'); }
+  function openMenu() {
+    menu.hidden = false;
+    startBtn.setAttribute('aria-expanded', 'true');
+    defer(() => menu.querySelector('.w98mi[data-i]')?.focus({ preventScroll: true }));
+  }
+  function closeMenu(refocus) {
+    menu.hidden = true;
+    startBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) startBtn.focus({ preventScroll: true });
+  }
+
+  /* Up/Down walk the menu and wrap, the way the real shell does */
+  menu.addEventListener('keydown', e => {
+    const items = [...menu.querySelectorAll('.w98mi[data-i]')];
+    const at = items.indexOf(document.activeElement);
+    const step = { ArrowDown: 1, ArrowUp: -1 }[e.key];
+    if (step) {
+      e.preventDefault();
+      items[(at + step + items.length) % items.length].focus();
+    } else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
+    else if (e.key === 'End')  { e.preventDefault(); items[items.length - 1].focus(); }
+  });
 
   startBtn.addEventListener('click', e => {
     e.stopPropagation();
@@ -988,7 +2334,7 @@
 
   window.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    if (!menu.hidden) { closeMenu(); return; }
+    if (!menu.hidden) { closeMenu(true); return; }
     if (!w98.hidden && open.size) {
       const top = [...open.entries()]
         .sort((a, b) => (+a[1].win.style.zIndex) - (+b[1].win.style.zIndex)).pop();

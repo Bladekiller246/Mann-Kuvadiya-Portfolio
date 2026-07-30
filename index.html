@@ -150,6 +150,10 @@
                     <span class="dossier__state is-build">BUILD</span>
                   </li>
                 </ol>
+
+                <!-- github.js fills this in: where the list above came from,
+                     or why the live one could not be reached. -->
+                <p class="footnote" id="ghNote" hidden></p>
               </section>
 
               <!-- ═══ CH 4 · SYS ══════════════════════════ -->
@@ -178,10 +182,32 @@
                 <ul class="comms">
                   <!-- ✎ real addresses -->
                   <li><a href="mailto:mannkuvadiya2006@gmail.com"><span class="comms__k">MAIL</span><span class="comms__v">mannkuvadiya2006@gmail.com</span></a></li>
-                  <li><a href="#"><span class="comms__k">GITHUB</span><span class="comms__v">github.com/&#8230;</span></a></li>
+                  <li><a href="https://github.com/Bladekiller246" target="_blank" rel="noopener"><span class="comms__k">GITHUB</span><span class="comms__v">github.com/Bladekiller246</span></a></li>
                   <li><a href="#"><span class="comms__k">LINKEDIN</span><span class="comms__v">linkedin.com/in/&#8230;</span></a></li>
                   <li><a href="#"><span class="comms__k">RESUME</span><span class="comms__v">resume.pdf</span></a></li>
                 </ul>
+
+                <!-- ✎ the breadcrumb to the restricted segment. The answer to
+                     every riddle in the pool is the same: knock three times. -->
+                <div class="riddle">
+                  <button class="riddle__btn" id="riddleBtn" aria-expanded="false" aria-controls="riddleOut">
+                    <span class="riddle__glyph" aria-hidden="true">?</span>RIDDLE ME THIS
+                  </button>
+
+                  <div class="riddle__out" id="riddleOut" tabindex="-1" hidden>
+                    <p class="riddle__text" id="riddleText"></p>
+                    <p class="riddle__meta">
+                      <span id="riddleNo">RIDDLE 01</span>
+                      <span class="riddle__hint" id="riddleHint" hidden>draw another</span>
+                      <!-- half the pool talks about a key; a touch visitor
+                           has none, so name the other target outright -->
+                      <span class="riddle__touch">the sign-off answers to taps</span>
+                      <span class="riddle__knock" id="riddleKnock" role="status" aria-label="Knocks registered">
+                        <i></i><i></i><i></i>
+                      </span>
+                    </p>
+                  </div>
+                </div>
 
                 <p class="sign">END OF TRANSMISSION<span class="caret" aria-hidden="true"></span></p>
               </section>
@@ -263,6 +289,8 @@
 
           <!-- scanlines bend with the geometry -->
           <div class="fx fx--scan" aria-hidden="true"></div>
+          <!-- and a slow luminance band drifting down behind them -->
+          <div class="fx fx--roll" aria-hidden="true"></div>
           <!-- shadow mask: only a colour tube has one, so only in OS mode -->
           <div class="fx fx--grille" aria-hidden="true"></div>
 
@@ -317,12 +345,26 @@
      tubeWarp  — barrel displacement; the map is generated in crt.js -->
 <svg class="defs" aria-hidden="true" focusable="false">
   <defs>
-    <!-- Fills its box completely, with only a small corner radius. An
-         earlier version inset the corners far enough that the dark recess
-         showed as a black frame and clipped maximised windows. -->
+    <!-- The faceplate outline. Top and bottom run straight; each side is a
+         single cubic that bows *outward*, touching full width only at
+         mid-height and falling back 3.4% by the corners — a real tube seen
+         face-on. One arc per side matters: an earlier version used two
+         cubics meeting at the widest point, which held the edge flat
+         against the box for the middle 70% and read as a rounded
+         rectangle, not a curve. Small quadratics turn the corners.
+
+         The 3.4% inset is the ceiling, not a preference — the shell inside
+         is positioned off --warp-x, and anything sitting closer to the
+         edge than the corner cut gets sliced by it. -->
     <clipPath id="tubeShape" clipPathUnits="objectBoundingBox">
-      <path d="M.026,0 L.974,0 Q1,0 1,.036 L1,.964 Q1,1 .974,1
-               L.026,1 Q0,1 0,.964 L0,.036 Q0,0 .026,0 Z"/>
+      <path d="M.052,0 L.948,0
+               Q.966,0 .966,.022
+               C1.0113,.28 1.0113,.72 .966,.978
+               Q.966,1 .948,1
+               L.052,1
+               Q.034,1 .034,.978
+               C-.0113,.72 -.0113,.28 .034,.022
+               Q.034,0 .052,0 Z"/>
     </clipPath>
 
     <filter id="tubeWarp" color-interpolation-filters="sRGB"
@@ -336,5 +378,8 @@
 
 <script src="crt.js"></script>
 <script src="win98.js"></script>
+<!-- last: it feeds the two above once the API answers, and the page is
+     complete without it -->
+<script src="github.js"></script>
 </body>
 </html>

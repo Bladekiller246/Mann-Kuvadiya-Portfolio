@@ -92,18 +92,101 @@
     body.classList.add('is-warped');
   }
 
-  /* Title-safe area, in exact pixels off the live tube size. Two things
-     push content off a curved screen: the barrel pulls it outward, and
-     #tubeShape cuts in at the corners. These cover both. */
+  /* ── §1b · SAFE AREA ────────────────────────────────────
+     Measured against the real clip path, not guessed as a percentage.
+
+     Two effects push content off a curved tube and they compound: the
+     barrel filter displaces it outward, and only then does #tubeShape
+     cut the corners away. Their ratio moves with the viewport's aspect
+     and with the bend strength — which OS mode drops to a quarter — so
+     one fixed percentage was clipping the taskbar and a maximised title
+     bar at every size. Sampling the path costs a few hundred point
+     tests on resize and is right by construction.
+
+       --warp-x / --warp-y   largest centred rectangle that fits, as an
+                             equal pixel margin on both axes
+       --edge-x              horizontal inset for anything pinned to the
+                             very top or bottom edge, where the corner
+                             bites hardest: taskbar, statusline, the
+                             title bar of a maximised window */
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  let probe = null, probePt = null;
+  let warpScale = WARP_S;          // live feDisplacementMap scale
+
+  function buildProbe() {
+    if (probe) return;
+    const src = $('#tubeShape path');
+    const host = $('.defs');
+    if (!src || !host) return;
+    probe = document.createElementNS(SVGNS, 'path');
+    probe.setAttribute('d', src.getAttribute('d'));
+    host.appendChild(probe);        // .defs is 0x0 with overflow hidden
+    probePt = host.createSVGPoint();
+  }
+
+  /* Does a point laid out at (xn,yn) survive the bend and the clip?
+     The map encodes displacement for scale WARP_S, so a live scale of
+     30 bends a quarter as hard — fold that into K. */
+  function lands(xn, yn) {
+    if (!probe) return true;
+    let vx = xn, vy = yn;
+    if (canWarp) {
+      const k = WARP_K * (warpScale / WARP_S);
+      const u = 2 * xn - 1, v = 2 * yn - 1;
+      const f = 1 / (1 + k * (u * u + v * v));
+      vx -= u * (f - 1) / 2;
+      vy -= v * (f - 1) / 2;
+    }
+    probePt.x = vx; probePt.y = vy;
+    return probe.isPointInFill(probePt);
+  }
+
+  const SAFE_STEP = 0.0015;
+  const SAFE_MAX  = 0.16;
+  /* How near the top and bottom edge "pinned" content actually gets, in
+     px — a title bar's text, a taskbar button. Measured in pixels and
+     not fractions because that is what the chrome is built in, and
+     because the last few rows are a trap: the barrel pushes a point at
+     y=1px clean off the top of the tube, so no x is safe there and a
+     fractional band would find none and clamp to the ceiling. Nothing
+     legible lives that close anyway. */
+  const EDGE_PX = [6, 12, 20, 28];
+
   function setSafeArea() {
     const W = glass.clientWidth, H = glass.clientHeight;
     if (!W || !H) return;
-    // corner radius of #tubeShape + barrel pull (~2.1% per axis at K=0.022)
-    // + breathing room; without the warp, the clip alone sets the floor
-    const fx = canWarp ? 0.046 : 0.026;
-    const fy = canWarp ? 0.048 : 0.028;
-    glass.style.setProperty('--warp-x', Math.round(W * fx) + 'px');
-    glass.style.setProperty('--warp-y', Math.round(H * fy) + 'px');
+    buildProbe();
+
+    let inset = canWarp ? 0.046 : 0.026;      // fallback if the probe failed
+
+    if (probe) {
+      const ratio = W / H;                    // keeps the margin square in px
+      for (let s = 0; s < SAFE_MAX; s += SAFE_STEP) {
+        const iy = s * ratio;
+        if (iy > 0.45) break;
+        if (lands(s, iy) && lands(1 - s, iy) &&
+            lands(s, 1 - iy) && lands(1 - s, 1 - iy)) { inset = s; break; }
+      }
+    }
+
+    let edge = inset;
+    if (probe) {
+      const bands = [];
+      EDGE_PX.forEach(d => { bands.push(d / H, 1 - d / H); });
+      bands.forEach(yn => {
+        for (let x = edge; x < SAFE_MAX; x += SAFE_STEP) {
+          if (lands(x, yn)) { edge = x; return; }
+        }
+        // no x lands at this height — it is off the tube outright, so
+        // there is nothing to widen for. Leave edge where it is.
+      });
+    }
+
+    const marginPx = Math.ceil(inset * W);
+    glass.style.setProperty('--warp-x', marginPx + 'px');
+    glass.style.setProperty('--warp-y', marginPx + 'px');
+    glass.style.setProperty('--edge-x', Math.ceil(edge * W) + 'px');
   }
 
   /* ── §2 · INTERFERENCE ──────────────────────────────────
@@ -273,6 +356,7 @@
     const line = () => {
       shown.push(POST[i]);
       i++;
+      if (POST[i - 1] !== '') audio.key();       // a line landing
       bootLog.innerHTML = render(shown, true);
       if (i < POST.length) after(POST[i - 1] === '' ? 28 : 85 + Math.random() * 55, line);
       else after(180, () => ramp(0));
@@ -288,6 +372,7 @@
     const finish = () => {
       bootLog.innerHTML = render(
         shown.concat(meter(100), '', '<b>SIGNAL ACQUIRED — tuning CH1</b>'), true);
+      audio.beep(1046, 0.09);                    // POST passed
       after(340, () => { burst(460); endCold(false); });
     };
 
@@ -306,6 +391,7 @@
     let i = 0;
     const step = () => {
       thesis.textContent = thesisText.slice(0, ++i);
+      audio.key();
       if (i < thesisText.length) setTimeout(step, 26 + Math.random() * 34);
     };
     setTimeout(step, 180);
@@ -335,6 +421,9 @@
 
   function tune(next) {
     if (next === current || next < 0 || next >= tabs.length || !powered) return;
+    // the gate and the OS own the tube — no channel change, and no
+    // static burst either, which read as "something happened"
+    if (body.classList.contains('is-alt')) return;
 
     if (!calm.matches) {
       body.classList.add('is-glitch');
@@ -374,15 +463,27 @@
      hand the tube over to win98.js. */
 
   let knocks = 0, knockTimer = 0;
+  const knockDots = $$('#riddleKnock i');
+
+  function paintKnocks() {
+    knockDots.forEach((d, i) => d.classList.toggle('is-on', i < knocks));
+  }
+
+  function resetKnocks() {
+    clearTimeout(knockTimer);
+    knocks = 0;
+    paintKnocks();
+  }
 
   function knock() {
     if (!powered || body.classList.contains('is-alt')) return;
-    if (current !== tabs.length - 1) { knocks = 0; return; }   // CH5 only
+    if (current !== tabs.length - 1) { resetKnocks(); return; }   // CH5 only
     clearTimeout(knockTimer);
-    knockTimer = setTimeout(() => { knocks = 0; }, 1400);
-    if (++knocks < 3) return;
-    knocks = 0;
+    knockTimer = setTimeout(resetKnocks, 1400);
+    if (++knocks < 3) { paintKnocks(); return; }
+    paintKnocks();
     clearTimeout(knockTimer);
+    setTimeout(resetKnocks, 260);        // let the third cell land first
     document.dispatchEvent(new CustomEvent('kvd:gate'));
   }
 
@@ -396,12 +497,390 @@
   });
   $('.sign')?.addEventListener('click', knock);
 
-  /* small surface for win98.js: static bursts and bend control */
+  /* ── §11b · RIDDLE ──────────────────────────────────────
+     Every riddle in the pool has the same answer — three knocks on
+     CH5 — so a visitor who draws any one of them can get in. The
+     button is the only signpost the restricted segment gets. */
+
+  const RIDDLES = [
+    'I end every line you write, and I have never written one. ' +
+    'Ask for me three times, here, and a door opens.',
+
+    'Five buttons on the panel, six rooms behind it. The sixth was never ' +
+    'given a button — only a knock.',
+
+    'Twice is a stutter. Three times is a password. ' +
+    'I am the key you strike to commit.',
+
+    'Not a channel, a knob, or a switch. I am the widest key that means yes. ' +
+    'Ask me, ask me, ask me.',
+
+    'The station answers to a rhythm, not a word. Knock the way a polite ' +
+    'visitor knocks, and knock here.',
+
+    'Once is nothing. Twice is a coincidence. Three times is an invitation. ' +
+    'The rest is up to your right hand.',
+
+    'You have the addresses. Now press the key you would have used to send ' +
+    'the message — three times.',
+
+    'The sign-off below is not a full stop, it is a door knocker. ' +
+    'It takes three, and so does the key.',
+  ];
+
+  const rBtn  = $('#riddleBtn');
+  const rOut  = $('#riddleOut');
+  const rText = $('#riddleText');
+  const rNo   = $('#riddleNo');
+  const rHint = $('#riddleHint');
+
+  if (rBtn) {
+    let last = -1;      // never draw the same riddle twice in a row
+    let drawn = 0;
+    let typeTimer = 0;
+
+    // Enter is the answer to the puzzle, so the button must not still be
+    // holding focus when the visitor tries it — the panel takes it instead.
+    const type = txt => {
+      clearTimeout(typeTimer);
+      if (calm.matches) { rText.textContent = txt; return; }
+      let i = 0;
+      const step = () => {
+        rText.textContent = txt.slice(0, ++i);
+        if (i < txt.length) typeTimer = setTimeout(step, 8 + Math.random() * 14);
+      };
+      rText.textContent = '';
+      typeTimer = setTimeout(step, 90);
+    };
+
+    rBtn.addEventListener('click', () => {
+      let i = Math.floor(Math.random() * RIDDLES.length);
+      if (i === last) i = (i + 1) % RIDDLES.length;
+      last = i;
+      drawn++;
+
+      rOut.hidden = false;
+      rBtn.setAttribute('aria-expanded', 'true');
+      rNo.textContent = 'RIDDLE ' + String(i + 1).padStart(2, '0');
+      type(RIDDLES[i]);
+
+      // the nudge sharpens for anyone still drawing cards
+      rHint.hidden = drawn < 3;
+      rHint.textContent = drawn < 5
+        ? 'draw another'
+        : 'they all have the same answer';
+
+      resetKnocks();
+      rOut.focus({ preventScroll: true });
+      // bring the knock cells and the sign-off into view — they are the
+      // only confirmation that the first two presses registered
+      scroll.scrollTo({
+        top: scroll.scrollHeight,
+        behavior: calm.matches ? 'auto' : 'smooth',
+      });
+    });
+  }
+
+  /* ── §6b · AUDIO ────────────────────────────────────────
+     One AudioContext for the whole set: the power switch, the knob's
+     detents, and win98.js's startup chime all run through the same
+     master gain, so the TUBE knob controls the lot in OS mode.
+
+     Everything is synthesised — no audio files ship. A context can
+     only start inside a user gesture, so every entry point calls
+     ensure() first and quietly does nothing if that fails. */
+
+  const audio = (() => {
+    let ac = null, master = null;
+    let vol = 0.7, muted = false;
+
+    try {
+      const v = localStorage.getItem('kvd-vol');
+      if (v !== null && !isNaN(parseFloat(v))) vol = clamp(parseFloat(v), 0, 1);
+      muted = localStorage.getItem('kvd-mute') === '1';
+    } catch (_) {}
+
+    function save() {
+      try {
+        localStorage.setItem('kvd-vol', String(vol));
+        localStorage.setItem('kvd-mute', muted ? '1' : '0');
+      } catch (_) {}
+    }
+
+    function level() {
+      if (!ac || !master) return;
+      master.gain.setTargetAtTime(muted ? 0 : vol, ac.currentTime, 0.015);
+    }
+
+    function ensure() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try {
+        if (!ac) {
+          ac = new AC();
+          master = ac.createGain();
+          master.gain.value = muted ? 0 : vol;
+          master.connect(ac.destination);
+        }
+        if (ac.state === 'suspended') ac.resume();
+      } catch (_) { ac = null; }
+      return ac;
+    }
+
+    /* A switch, not a beep. Filtered noise for the contact, a fast
+       downward triangle under it for the mass of the plastic. */
+    function click(hard) {
+      if (!ensure() || muted) return;
+      const t = ac.currentTime;
+      const dur = 0.05;
+
+      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * dur), ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 7);
+      }
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      const bp = ac.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = hard ? 2000 : 2650;
+      bp.Q.value = 0.9;
+      const ng = ac.createGain();
+      ng.gain.value = hard ? 0.55 : 0.3;
+      src.connect(bp); bp.connect(ng); ng.connect(master);
+      src.start(t); src.stop(t + dur);
+
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(hard ? 165 : 215, t);
+      o.frequency.exponentialRampToValueAtTime(68, t + 0.045);
+      g.gain.setValueAtTime(hard ? 0.24 : 0.13, t);
+      g.gain.exponentialRampToValueAtTime(0.0006, t + 0.05);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 0.06);
+    }
+
+    /* ── the set idling ──────────────────────────────────
+       What a powered tube actually puts into a room: mains hum out of
+       the transformer, and the flyback whistling at the line rate.
+       The set is wired for Mumbai, so that is 50 Hz mains and a 15625 Hz
+       line rate — PAL numbers, not NTSC's 60 / 15734.
+
+       15.6 kHz is above where a lot of adults hear anything, so half of
+       it rides underneath at a lower level. That keeps it audible
+       without being a dog whistle. Everything here is held very low on
+       purpose: this should be the sound you notice stopping, not the
+       sound you notice. */
+
+    const MAINS = 50;
+    const FLYBACK = 15625;
+    let amb = null;
+
+    function ambient(on) {
+      if (!on) {
+        if (!amb || !ac) return;
+        const dead = amb; amb = null;
+        try {
+          dead.g.gain.cancelScheduledValues(ac.currentTime);
+          dead.g.gain.setTargetAtTime(0.0001, ac.currentTime, 0.16);
+          dead.nodes.forEach(n => n.stop(ac.currentTime + 1.1));
+        } catch (_) {}
+        return;
+      }
+      if (amb || !ensure()) return;
+
+      const t = ac.currentTime;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(1, t + 1.8);      // the tube warming
+      g.connect(master);
+
+      const nodes = [];
+      const osc = (hz, level, dest) => {
+        const o = ac.createOscillator();
+        const og = ac.createGain();
+        o.type = 'sine'; o.frequency.value = hz;
+        og.gain.value = level;
+        o.connect(og); og.connect(dest);
+        o.start(t); nodes.push(o);
+      };
+
+      const lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 400; lp.Q.value = 0.7;
+      lp.connect(g);
+      osc(MAINS, 0.030, lp);
+      osc(MAINS * 2, 0.017, lp);
+      osc(MAINS * 3, 0.008, lp);
+
+      osc(FLYBACK, 0.0070, g);
+      osc(FLYBACK / 2, 0.0034, g);
+
+      // nothing electrical is perfectly steady
+      const lfo = ac.createOscillator();
+      const lfoG = ac.createGain();
+      lfo.frequency.value = 0.23;
+      lfoG.gain.value = 0.2;
+      lfo.connect(lfoG); lfoG.connect(g.gain);
+      lfo.start(t); nodes.push(lfo);
+
+      amb = { g, nodes };
+    }
+
+    /* ── degauss ─────────────────────────────────────────
+       The thunk-wobble every colour set makes when the degaussing coil
+       fires on a cold start: a low tone dropping in pitch while the
+       field collapses around it, the wobble fast at first and slowing
+       as it settles, and the shadow mask taking the hit up front. */
+    function degauss() {
+      if (!ensure() || muted) return;
+      const t = ac.currentTime;
+      const dur = 1.5;
+
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.5, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0004, t + dur);
+      g.connect(master);
+
+      const o = ac.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(76, t);
+      o.frequency.exponentialRampToValueAtTime(37, t + dur);
+      const lp = ac.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(880, t);
+      lp.frequency.exponentialRampToValueAtTime(170, t + dur);
+      o.connect(lp); lp.connect(g);
+      o.start(t); o.stop(t + dur);
+
+      const trem = ac.createOscillator();
+      const tremG = ac.createGain();
+      trem.frequency.setValueAtTime(11, t);
+      trem.frequency.exponentialRampToValueAtTime(2.2, t + dur);
+      tremG.gain.value = 0.38;
+      trem.connect(tremG); tremG.connect(g.gain);
+      trem.start(t); trem.stop(t + dur);
+
+      const nb = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.12), ac.sampleRate);
+      const nd = nb.getChannelData(0);
+      for (let i = 0; i < nd.length; i++) {
+        nd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / nd.length, 3);
+      }
+      const ns = ac.createBufferSource();
+      ns.buffer = nb;
+      const nf = ac.createBiquadFilter();
+      nf.type = 'bandpass'; nf.frequency.value = 620; nf.Q.value = 1.1;
+      const ng = ac.createGain();
+      ng.gain.value = 0.4;
+      ns.connect(nf); nf.connect(ng); ng.connect(master);
+      ns.start(t); ns.stop(t + 0.12);
+    }
+
+    /* POST beep — a bare square, the way a motherboard speaker does it */
+    function beep(hz, dur) {
+      if (!ensure() || muted) return;
+      hz = hz || 880; dur = dur || 0.11;
+      const t = ac.currentTime;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'square';
+      o.frequency.value = hz;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.17, t + 0.006);
+      g.gain.setValueAtTime(0.17, t + dur - 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0004, t + dur);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + dur + 0.02);
+    }
+
+    /* one character landing on the tube. Throttled: the typewriter can
+       ask for these faster than they are worth hearing. */
+    let lastKey = 0;
+    function key() {
+      if (!ensure() || muted) return;
+      const t = ac.currentTime;
+      if (t - lastKey < 0.028) return;
+      lastKey = t;
+      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.02), ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 5);
+      }
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      const bp = ac.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 3200 + Math.random() * 900;
+      bp.Q.value = 1.4;
+      const g = ac.createGain();
+      g.gain.value = 0.13;          // the terminal should be heard working
+      src.connect(bp); bp.connect(g); g.connect(master);
+      src.start(t); src.stop(t + 0.02);
+    }
+
+    /* one detent of the knob — dry, tiny, slightly different each time
+       so a fast sweep does not turn into a machine-gun tone */
+    function tick() {
+      if (!ensure() || muted) return;
+      const t = ac.currentTime;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'square';
+      o.frequency.value = 1450 + Math.random() * 320;
+      g.gain.setValueAtTime(0.05, t);
+      g.gain.exponentialRampToValueAtTime(0.0004, t + 0.026);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 0.03);
+    }
+
+    return {
+      ensure, click, tick, ambient, degauss, beep, key,
+      get running() { return !!amb; },
+      get ctx() { return ac; },
+      get bus() { return master; },
+      get volume() { return vol; },
+      set volume(v) {
+        vol = clamp(v, 0, 1);
+        if (vol > 0) muted = false;
+        level(); save();
+      },
+      get muted() { return muted; },
+      set muted(m) { muted = !!m; level(); save(); },
+    };
+  })();
+
+  /* A context cannot start outside a user gesture, so the set is silent
+     until the first click or keypress — then it warms up: the degauss
+     coil fires and the idle hum fades in behind it. On a cold load that
+     is usually the keypress that skips the boot. */
+  let warmed = false;
+  function warmUp() {
+    if (warmed || !powered) return;
+    warmed = true;
+    if (!audio.ensure()) return;
+    audio.degauss();
+    setTimeout(() => { if (powered) audio.ambient(true); }, 500);
+  }
+  window.addEventListener('pointerdown', warmUp);
+  window.addEventListener('keydown', warmUp);
+
+  /* small surface for win98.js: static bursts, bend control, audio */
   const warpDisp = $('#warpDisp');
+
+  // the safe area depends on how hard the tube is bending, so every
+  // change of scale has to re-measure it
+  function applyWarpScale(v) {
+    warpScale = v;
+    warpDisp?.setAttribute('scale', v);
+    setSafeArea();
+  }
+
   window.KVD = {
     burst,
-    setWarpScale(v) { warpDisp?.setAttribute('scale', v); },
-    restoreWarp() { warpDisp?.setAttribute('scale', WARP_S); },
+    audio,
+    setWarpScale: applyWarpScale,
+    restoreWarp() { applyWarpScale(WARP_S); },
   };
 
   // deep link on load
@@ -417,6 +896,8 @@
 
   function powerOff() {
     powered = false;
+    audio.click(true);            // heavier going down
+    audio.ambient(false);         // and the room goes quiet
     setMode('off');
     body.classList.add('is-powering-off');
     setTimeout(() => {
@@ -430,6 +911,10 @@
 
   function powerOn() {
     powered = true;
+    warmed = true;
+    audio.click(false);           // lighter coming back up
+    audio.degauss();              // the coil fires on every cold start
+    setTimeout(() => { if (powered) audio.ambient(true); }, 500);
     standby.hidden = true;
     body.classList.remove('is-off');
     body.classList.add('is-booting');
@@ -442,17 +927,158 @@
   power.addEventListener('click', e => { e.stopPropagation(); powered ? powerOff() : powerOn(); });
   standby.addEventListener('click', powerOn);
 
-  /* ── §8 · PHOSPHOR ──────────────────────────────────────── */
+  /* ── §8 · THE TUBE KNOB ─────────────────────────────────
+     Two jobs, decided by what is on the tube.
+
+     Terminal — a two-position phosphor selector, click to toggle.
+     Windows 98 — a volume control: turn it clockwise and it gets
+     louder, anticlockwise and it gets quieter. A colour tube running
+     an OS has no phosphor to choose, and the set needs a volume
+     control once it has sound, so the same knob does both jobs the
+     way a real one would.
+
+     Drag, wheel and arrow keys all work; a real knob answers to more
+     than one grip. */
 
   const knob = $('#knob');
-  knob.addEventListener('click', () => {
+  const dial = $('.knob__dial');
+  const SWEEP = 135;               // degrees either side of centre
+  const DETENT = 0.05;             // volume per audible click
+
+  const osMode = () => body.classList.contains('is-win98');
+
+  function paintDial() {
+    if (!dial) return;
+    if (osMode()) {
+      dial.style.rotate = (audio.volume * 2 - 1) * SWEEP + 'deg';
+      knob.style.setProperty('--vol', String(audio.muted ? 0 : audio.volume));
+    } else {
+      dial.style.rotate = '';      // hand it back to the phosphor rule
+    }
+  }
+
+  function describeKnob() {
+    if (osMode()) {
+      const pct = Math.round(audio.volume * 100);
+      knob.setAttribute('aria-label', `Volume ${pct}%. Turn to adjust.`);
+      knob.title = `Volume ${pct}%`;
+      knob.setAttribute('role', 'slider');
+      knob.setAttribute('aria-valuemin', '0');
+      knob.setAttribute('aria-valuemax', '100');
+      knob.setAttribute('aria-valuenow', String(pct));
+    } else {
+      const p4 = document.documentElement.dataset.phosphor === 'p4';
+      knob.setAttribute('aria-label', p4
+        ? 'Tube: P4 white. Switch to P1 green.'
+        : 'Tube: P1 green. Switch to P4 white.');
+      knob.title = 'Tube: P4 white / P1 green';
+      knob.removeAttribute('role');
+      knob.removeAttribute('aria-valuemin');
+      knob.removeAttribute('aria-valuemax');
+      knob.removeAttribute('aria-valuenow');
+    }
+  }
+
+  let lastDetent = 0;
+
+  function setVolume(v) {
+    audio.ensure();
+    audio.volume = v;
+    const step = Math.round(audio.volume / DETENT);
+    if (step !== lastDetent) { lastDetent = step; audio.tick(); }
+    paintDial();
+    describeKnob();
+    document.dispatchEvent(new CustomEvent('kvd:volume', { detail: audio.volume }));
+  }
+
+  function togglePhosphor() {
     const next = document.documentElement.dataset.phosphor === 'p4' ? 'p1' : 'p4';
     document.documentElement.dataset.phosphor = next;
-    knob.setAttribute('aria-label', next === 'p4'
-      ? 'Tube: P4 white. Switch to P1 green.'
-      : 'Tube: P1 green. Switch to P4 white.');
+    describeKnob();
     if (redrawStill) redrawStill();
+  }
+
+  /* pointer drag — angle around the knob's centre, unwrapped so a sweep
+     past the 180° seam does not jump the volume across the range */
+  let turning = false, lastAngle = 0, moved = 0;
+
+  const angleAt = e => {
+    const r = knob.getBoundingClientRect();
+    return Math.atan2(e.clientY - (r.top + r.height / 2),
+                      e.clientX - (r.left + r.width / 2)) * 180 / Math.PI;
+  };
+
+  knob.addEventListener('pointerdown', e => {
+    if (!osMode()) return;
+    turning = true; moved = 0;
+    lastAngle = angleAt(e);
+    knob.setPointerCapture(e.pointerId);
+    audio.ensure();
+    e.preventDefault();
   });
+
+  knob.addEventListener('pointermove', e => {
+    if (!turning) return;
+    const a = angleAt(e);
+    let d = a - lastAngle;
+    if (d > 180) d -= 360;          // crossed the seam anticlockwise
+    if (d < -180) d += 360;         // ... or clockwise
+    lastAngle = a;
+    moved += Math.abs(d);
+    setVolume(audio.volume + d / (SWEEP * 2));
+  });
+
+  const endTurn = e => {
+    if (!turning) return;
+    turning = false;
+    try { knob.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+  knob.addEventListener('pointerup', endTurn);
+  knob.addEventListener('pointercancel', endTurn);
+
+  knob.addEventListener('click', e => {
+    if (osMode()) {
+      // a turn ends in a click event too; only a genuine tap gets through
+      if (moved < 4) { audio.ensure(); audio.muted = !audio.muted; describeKnob(); }
+      moved = 0;
+      e.preventDefault();
+      return;
+    }
+    togglePhosphor();
+  });
+
+  knob.addEventListener('wheel', e => {
+    if (!osMode()) return;
+    e.preventDefault();
+    setVolume(audio.volume - Math.sign(e.deltaY) * DETENT);
+  }, { passive: false });
+
+  knob.addEventListener('keydown', e => {
+    if (!osMode()) return;
+    const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    setVolume(audio.volume + step * DETENT);
+  });
+
+  /* ── §8b · MODE LOCK ────────────────────────────────────
+     The gate and the OS own the tube, so the channel keys do nothing
+     while either is up — including the static burst, which used to
+     fire and look like the set had done something. They stay focusable
+     and announce themselves as disabled rather than going `disabled`,
+     because they come back the moment you shut down. */
+
+  function syncMode() {
+    const locked = body.classList.contains('is-alt');
+    tabs.forEach(t => t.setAttribute('aria-disabled', locked ? 'true' : 'false'));
+    lastDetent = Math.round(audio.volume / DETENT);
+    paintDial();
+    describeKnob();
+  }
+
+  new MutationObserver(syncMode)
+    .observe(body, { attributes: true, attributeFilter: ['class'] });
+  syncMode();
 
   /* ── §9 · TELEMETRY ─────────────────────────────────────── */
 
