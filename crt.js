@@ -100,8 +100,8 @@
     if (!W || !H) return;
     // corner radius of #tubeShape + barrel pull (~2.1% per axis at K=0.022)
     // + breathing room; without the warp, the clip alone sets the floor
-    const fx = canWarp ? 0.062 : 0.040;
-    const fy = canWarp ? 0.052 : 0.030;
+    const fx = canWarp ? 0.046 : 0.026;
+    const fy = canWarp ? 0.048 : 0.028;
     glass.style.setProperty('--warp-x', Math.round(W * fx) + 'px');
     glass.style.setProperty('--warp-y', Math.round(H * fy) + 'px');
   }
@@ -364,9 +364,45 @@
   window.addEventListener('keydown', e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (/^(input|textarea|select)$/i.test(e.target.tagName)) return;
+    if (body.classList.contains('is-alt')) return;   // gate / OS owns the tube
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= tabs.length) tune(n - 1);
   });
+
+  /* ── §11 · ACCESS GATE TRIGGER ──────────────────────────
+     Three Enters on CH5 (or three clicks on END OF TRANSMISSION)
+     hand the tube over to win98.js. */
+
+  let knocks = 0, knockTimer = 0;
+
+  function knock() {
+    if (!powered || body.classList.contains('is-alt')) return;
+    if (current !== tabs.length - 1) { knocks = 0; return; }   // CH5 only
+    clearTimeout(knockTimer);
+    knockTimer = setTimeout(() => { knocks = 0; }, 1400);
+    if (++knocks < 3) return;
+    knocks = 0;
+    clearTimeout(knockTimer);
+    document.dispatchEvent(new CustomEvent('kvd:gate'));
+  }
+
+  // keyup, not keydown: Enter's default action activates whatever button
+  // has focus, and opening the gate moves focus onto one of its buttons.
+  // On keydown that click landed on the freshly-focused ADMIN button.
+  window.addEventListener('keyup', e => {
+    if (e.key !== 'Enter' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^(input|textarea|select)$/i.test(e.target.tagName)) return;
+    knock();
+  });
+  $('.sign')?.addEventListener('click', knock);
+
+  /* small surface for win98.js: static bursts and bend control */
+  const warpDisp = $('#warpDisp');
+  window.KVD = {
+    burst,
+    setWarpScale(v) { warpDisp?.setAttribute('scale', v); },
+    restoreWarp() { warpDisp?.setAttribute('scale', WARP_S); },
+  };
 
   // deep link on load
   const hash = location.hash.slice(1);

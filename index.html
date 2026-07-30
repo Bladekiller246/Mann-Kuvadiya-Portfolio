@@ -14,6 +14,7 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap"></noscript>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="win98.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2308090a'/><text x='16' y='23' font-size='20' text-anchor='middle' fill='%23eef2f3' font-family='monospace'>&gt;_</text></svg>">
 </head>
 <body class="is-cold">
@@ -202,9 +203,68 @@
             <span class="statusline__m statusline__m--wide">UPTIME <b id="slUp">00:00:00</b></span>
           </div>
 
-          <!-- scanlines bend with the geometry. No aperture grille:
-               a monochrome tube has no shadow mask. -->
+          <!-- ══ ACCESS GATE ══════════════════════════════════
+               Reached from CH5 by pressing Enter three times. -->
+          <div class="gate" id="gate" hidden>
+            <div class="gate__inner">
+              <p class="gate__eyebrow">RESTRICTED SEGMENT &middot; AUTHORISATION REQUIRED</p>
+              <h2 class="gate__title">SELECT ACCESS LEVEL</h2>
+              <div class="gate__pair">
+                <button class="gbtn" id="gateAdmin"><b>ADMIN</b><span>full station control</span></button>
+                <button class="gbtn" id="gateGuest"><b>GUEST</b><span>read&#8209;only workstation</span></button>
+              </div>
+              <button class="gate__back" id="gateBack">&larr; back to terminal</button>
+            </div>
+          </div>
+
+          <!-- ══ ADMIN LOGIN ══ (client-side only; always refuses) -->
+          <div class="gate" id="login" hidden>
+            <form class="gate__inner" id="loginForm" autocomplete="off" novalidate>
+              <p class="gate__eyebrow">KVD&#8209;4400 &middot; ADMIN CONSOLE</p>
+              <h2 class="gate__title">AUTHENTICATE</h2>
+              <label class="fld"><span>USERNAME</span>
+                <input id="luser" type="text" autocomplete="off" spellcheck="false"></label>
+              <label class="fld"><span>PASSWORD</span>
+                <input id="lpass" type="password" autocomplete="new-password"></label>
+              <p class="gate__msg" id="loginMsg" role="status" aria-live="polite"></p>
+              <div class="gate__row">
+                <button class="gbtn gbtn--sm" type="submit" id="loginGo">AUTHENTICATE</button>
+                <button class="gbtn gbtn--sm" type="button" id="loginCancel">CANCEL</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ══ OS BOOT ══ -->
+          <div class="boot" id="osboot" hidden aria-hidden="true">
+            <pre class="boot__log" id="osbootLog"></pre>
+          </div>
+
+          <!-- ══ WINDOWS 98 SPLASH ══ -->
+          <div class="splash" id="splash" hidden aria-hidden="true">
+            <div class="splash__art">
+              <div class="flag"><i class="pane pr"></i><i class="pane pg"></i><i class="pane pb"></i><i class="pane py"></i></div>
+              <div class="dissolve" aria-hidden="true"></div>
+            </div>
+            <p class="splash__word"><span>Microsoft</span><b>Windows</b><em>98</em></p>
+          </div>
+
+          <!-- ══ WINDOWS 98 DESKTOP ══ -->
+          <div class="w98" id="w98" hidden>
+            <div class="w98desk" id="w98Desk"></div>
+            <div class="w98wins" id="w98Wins"></div>
+            <div class="w98menu" id="w98Menu" hidden></div>
+            <div class="w98bar">
+              <button class="w98start" id="w98Start" aria-haspopup="true" aria-expanded="false"><i></i>Start</button>
+              <span class="w98sep"></span>
+              <div class="w98tasks" id="w98Tasks"></div>
+              <div class="w98tray"><time id="w98Clock"></time></div>
+            </div>
+          </div>
+
+          <!-- scanlines bend with the geometry -->
           <div class="fx fx--scan" aria-hidden="true"></div>
+          <!-- shadow mask: only a colour tube has one, so only in OS mode -->
+          <div class="fx fx--grille" aria-hidden="true"></div>
 
           <!-- static, sync loss, interference bursts -->
           <canvas class="tv" id="tv" aria-hidden="true"></canvas>
@@ -257,25 +317,24 @@
      tubeWarp  — barrel displacement; the map is generated in crt.js -->
 <svg class="defs" aria-hidden="true" focusable="false">
   <defs>
-    <!-- A late-model computer tube: a rounded rectangle with a generous
-         corner radius and only a hair of bow along each edge. The earlier
-         path pinched the corners hard and read as a fishbowl. -->
+    <!-- Fills its box completely, with only a small corner radius. An
+         earlier version inset the corners far enough that the dark recess
+         showed as a black frame and clipped maximised windows. -->
     <clipPath id="tubeShape" clipPathUnits="objectBoundingBox">
-      <path d="M.088,.007 Q.5,-.005 .912,.007 Q.982,.014 .992,.108
-               Q1.003,.5 .992,.892 Q.982,.986 .912,.993
-               Q.5,1.005 .088,.993 Q.018,.986 .008,.892
-               Q-.003,.5 .008,.108 Q.018,.014 .088,.007 Z"/>
+      <path d="M.026,0 L.974,0 Q1,0 1,.036 L1,.964 Q1,1 .974,1
+               L.026,1 Q0,1 0,.964 L0,.036 Q0,0 .026,0 Z"/>
     </clipPath>
 
     <filter id="tubeWarp" color-interpolation-filters="sRGB"
             x="0" y="0" width="100%" height="100%">
       <feImage id="warpMap" result="map" preserveAspectRatio="none"/>
-      <feDisplacementMap in="SourceGraphic" in2="map"
+      <feDisplacementMap id="warpDisp" in="SourceGraphic" in2="map"
                          scale="120" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
   </defs>
 </svg>
 
 <script src="crt.js"></script>
+<script src="win98.js"></script>
 </body>
 </html>

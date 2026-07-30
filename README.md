@@ -5,13 +5,18 @@ CRT computer monitor sitting in a dark room. The tube geometrically bends its
 contents, the controls are moulded into the cabinet fascia, and each section is
 a channel you tune to.
 
-Three files, no build step, no dependencies:
+Hidden behind the terminal is a second skin: a guest session that boots
+Windows 98 inside the same tube.
+
+Five files, no build step, no dependencies:
 
 | File | What's in it |
 |---|---|
-| `index.html` | All content. Every editable spot is marked `<!-- ✎ -->`. |
+| `index.html` | All markup. Every editable spot is marked `<!-- ✎ -->`. |
 | `styles.css` | Tokens, cabinet, tube geometry, CRT overlays, screen content, fascia. |
 | `crt.js` | Warp map, safe area, static, boot sequence, channels, power, tube, spectrum. |
+| `win98.css` | Access gate, OS boot, splash, and the Windows 98 shell. |
+| `win98.js` | Icons, window contents, window manager, taskbar, Start menu. |
 
 ## Run it
 
@@ -51,6 +56,7 @@ control.
 | ⏻ button | Power the tube down and back up |
 | TUBE knob | Swap P4 white ↔ P1 green phosphor |
 | Any key during boot | Skip the boot sequence |
+| **Enter ×3 on CH5** (or 3 clicks on END OF TRANSMISSION) | Open the access gate |
 
 ## Monochrome
 
@@ -84,9 +90,10 @@ Things worth knowing before you change it:
   `WARP_K` means raising those factors too.** The barrel pulls edge content
   outward and `#tubeShape` rounds off the corners; between them, text with too
   little margin gets pushed off the glass.
-- `#tubeShape` is a rounded rectangle with a generous corner radius and about
-  1% of bow per edge. An earlier version pinched the corners hard and read as a
-  fishbowl rather than a monitor.
+- `#tubeShape` fills its box with only a small corner radius, and `--wl` is `0`
+  so the glass runs right to the plastic opening. Earlier versions inset the
+  corners far enough that the dark recess read as a **black frame**, and it
+  clipped maximised windows and the taskbar.
 - The map is generated at 420px wide. At 160 its own upscaling interpolation
   visibly shredded 1–2px rules and small text near the edges.
 - `.scroll`'s bottom inset includes `--warp-y` so scrolling text can't slide
@@ -144,3 +151,95 @@ outline plus overlays.
 - Focus rings are drawn in the active phosphor colour on screen, and dark against
   the plastic on the fascia.
 - Degrades to a plain scrolling page with all five sections visible if JS fails.
+
+
+## The guest session
+
+On **CH5 COMMS**, pressing Enter three times (or clicking END OF TRANSMISSION
+three times) opens an access gate with two doors:
+
+- **ADMIN** — a username/password prompt that always refuses. It is inert:
+  purely client-side, submits nowhere, stores nothing, and validates nothing.
+  It exists as a dead end until you decide what should live behind it. The
+  refusal text and attempt counter are in `win98.js` §3.
+- **GUEST** — a DOS-style loader types out, then the Windows 98 splash, then
+  the desktop. About 5s end to end; instant under `prefers-reduced-motion`.
+
+Get back out with **Start ▸ Shut Down** (returns to the terminal) or
+**Start ▸ Log Off** (returns to the gate). `Esc` closes the front window, then
+the menu, then the gate.
+
+### The tube switches to colour
+
+A monochrome tube cannot show Windows 98, so booting it flips the display:
+`body.is-win98` turns on the RGB shadow mask (`.fx--grille` — a colour CRT has
+one, the mono tube does not), dims the white phosphor bloom, and eases the
+scanlines. Shutting down reverses all of it.
+
+It also **cuts the barrel displacement to roughly a third** (`scale` 120 → 45,
+via `KVD.setWarpScale`). The warp moves pixels but not hit-testing, so at full
+strength clicks on desktop icons and title bars landed ~15px away from where
+they appeared. At 45 the curve still reads and the pointer stays honest.
+
+### What works in there
+
+| Thing | How |
+|---|---|
+| Open something | Double-click an icon, or Enter when it's focused |
+| Move a window | Drag its title bar |
+| Resize a window | Drag the grip at the bottom-right |
+| Maximise | Title-bar button, or double-click the title bar |
+| Minimise / switch | Title-bar button, or the taskbar buttons |
+| **Minesweeper** | 9x9, 10 mines. Left-click reveals, right-click flags, the face resets. First click is always safe. |
+| **Notepad** | The About window is a real editable textarea. Nothing is saved. |
+| **Display Properties** | Start ▸ Settings, or right-click the desktop ▸ Properties. Recolours the desktop live. |
+| **Run** | Start ▸ Run. Accepts `notepad`, `winmine`, `explorer`, `control`, `devmgr`, `mail`, `help` and a few aliases; anything else gets the authentic "Cannot find the file" error. |
+| Desktop right-click | Arrange Icons by Name (really sorts), Line up Icons (resets), Refresh, Properties |
+| Sound | Speaker icon in the tray mutes the startup chime; the choice is remembered |
+| `Esc` | Closes the front window, then the menu, then the gate |
+
+### The startup chime
+
+**This is not the Microsoft sound.** That file is their copyrighted asset and is
+not shipped here. What plays is synthesised from scratch with the Web Audio API
+in `win98.js` — a rising D-major figure over a warm pad, roughly the same shape
+and length. Swap in a real audio file if you have the rights to one.
+
+The `AudioContext` is created on the **GUEST click**, not at splash time, because
+autoplay policy needs a user gesture; `playChime()` then only schedules notes.
+It stays silent under `prefers-reduced-motion` and when muted.
+
+### Editing the desktop
+
+Window contents live in the `APPS` map in `win98.js` §2 — same portfolio
+material as the terminal channels, wearing a different shell. Each entry takes
+`title`, optional `label` (shorter text for the desktop icon), `icon`, `w`, `h`,
+`body` HTML, and optional `menubar` / `pane` / `status`. `DESKTOP` lists which
+appear as icons; `MENU` is the Start menu. Icons are inline SVG in `§1`.
+
+Things the window manager already handles: drag by title bar, close, minimise to
+taskbar, maximise/restore, focus and z-order, taskbar buttons, nested opens
+(double-clicking a file inside a folder window), and clamping window size to the
+tube so nothing hangs off a small screen.
+
+## Bugs worth remembering
+
+All found by driving the page, not by reading it:
+
+- **The gate opened and instantly vanished.** The trigger ran on `keydown`, and
+  Enter's default action activates whatever button has focus *after* listeners
+  run — so opening the gate moved focus onto ADMIN and the same keypress clicked
+  it. The trigger now fires on `keyup`, and focus moves are deferred two frames.
+- **The static burst never reached full strength.** `.tv` had a 220ms CSS
+  opacity transition while the burst only lived 300ms, so CSS and the canvas
+  alpha fought each other and the channel swap showed through as a blank screen.
+  The canvas now owns its own fade entirely.
+- **The desktop never appeared after a refactor.** Splitting icon rendering into
+  `renderIcons()` left an orphaned `b.addEventListener(...)` behind in
+  `buildDesktop`, referencing a variable that no longer existed. It parsed fine
+  — `node --check` passed — but threw at runtime before `show(w98)`, so the
+  icons existed in the DOM and were simply never displayed.
+- **Windows 98 text was mushy.** Three things stacked up: the barrel filter
+  resampling every glyph, the scanline overlay, and 11px type. Fixed by dropping
+  the displacement to `scale` 30 in OS mode, easing the overlays, and going to
+  12px. The terminal keeps the full bend — its type is large enough to take it.
