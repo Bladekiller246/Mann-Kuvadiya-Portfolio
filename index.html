@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-phosphor="p4">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mann Kuvadiya — Ground Station</title>
+<meta name="description" content="Portfolio of Mann Kuvadiya — embedded systems, ground-station tooling, and data interfaces.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Loaded without blocking: a slow font fetch must not delay the boot
+     sequence. Both faces fall back to the system monospace and swap in. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap"></noscript>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2308090a'/><text x='16' y='23' font-size='20' text-anchor='middle' fill='%23eef2f3' font-family='monospace'>&gt;_</text></svg>">
+</head>
+<body class="is-cold">
+
+<a class="skip" href="#scroll">Skip to content</a>
+
+<!-- ══ THE SET ════════════════════════════════════════════ -->
+<div class="room">
+ <div class="set">
+  <div class="cabinet">
+
+    <!-- ── recessed screen well ─────────────────────────── -->
+    <div class="well">
+      <div class="glass" id="glass">
+
+        <!-- everything in here is geometrically bent by #tubeWarp.
+             .raster is a separate layer because the power-on/roll
+             keyframes animate `filter`, which would clobber the warp. -->
+        <div class="warp" id="warp">
+         <div class="raster" id="raster">
+
+          <div class="scroll" id="scroll">
+            <main class="deck" id="deck">
+
+              <!-- ═══ CH 1 · SIGNAL ═══════════════════════ -->
+              <section class="ch" id="ch-signal" role="tabpanel" aria-labelledby="tab-signal" tabindex="-1">
+                <p class="eyebrow">LINK ESTABLISHED &middot; 437.505 MHz &middot; FSK 9k6</p>
+
+                <h1 class="nameplate">
+                  <span class="nameplate__l1">MANN</span>
+                  <span class="nameplate__l2">KUVADIYA</span>
+                </h1>
+
+                <!-- ✎ one-line thesis -->
+                <p class="thesis" data-type>I build the software that talks to hardware.</p>
+
+                <!-- ✎ supporting line -->
+                <p class="lede">Embedded systems, ground&#8209;station tooling, and the dashboards that
+                   make sense of what comes back down.</p>
+
+                <figure class="analyzer">
+                  <canvas id="spectrum" width="640" height="120" role="img"
+                          aria-label="Live spectrum analyzer showing a carrier signal with sidebands."></canvas>
+                  <figcaption class="analyzer__cap">
+                    <span>SPECTRUM &middot; 2 kHz/div</span>
+                    <span class="analyzer__peak">PEAK <b id="peakVal">&minus;42</b> dBm</span>
+                  </figcaption>
+                </figure>
+
+                <dl class="readout">
+                  <div><dt>SIGNAL</dt><dd id="rSignal">94%</dd></div>
+                  <div><dt>PACKETS</dt><dd id="rPackets">1,204</dd></div>
+                  <div><dt>ELEVATION</dt><dd id="rElev">61.4&deg;</dd></div>
+                  <div><dt>STATUS</dt><dd class="ok">LOCKED</dd></div>
+                </dl>
+              </section>
+
+              <!-- ═══ CH 2 · ID ═══════════════════════════ -->
+              <section class="ch" id="ch-id" role="tabpanel" aria-labelledby="tab-id" tabindex="-1" hidden>
+                <h2 class="cmd"><span class="cmd__prompt">ops@ground&#8209;station:~$</span> cat ./whoami.txt</h2>
+
+                <!-- ✎ bio -->
+                <div class="prose">
+                  <p>I'm an engineering student who got pulled into this by a radio and a
+                     soldering iron, and never really left. Most of what I build sits on the
+                     seam between a physical device and the person trying to understand it —
+                     firmware on one end, a legible interface on the other.</p>
+                  <p>Right now I spend my time on satellite ground&#8209;station software, geospatial
+                     data pipelines, and the unglamorous plumbing that keeps telemetry flowing
+                     when the pass is only eleven minutes long.</p>
+                </div>
+
+                <dl class="spec">
+                  <div><dt>BASED</dt><dd>Mumbai, IN &middot; UTC+5:30</dd></div>          <!-- ✎ -->
+                  <div><dt>FOCUS</dt><dd>Embedded &middot; RF &middot; Data interfaces</dd></div> <!-- ✎ -->
+                  <div><dt>LEARNING</dt><dd>Rust, SDR signal chains</dd></div>            <!-- ✎ -->
+                  <div><dt>STATUS</dt><dd class="ok">Open to internships</dd></div>       <!-- ✎ -->
+                </dl>
+              </section>
+
+              <!-- ═══ CH 3 · WORK ═════════════════════════ -->
+              <section class="ch" id="ch-work" role="tabpanel" aria-labelledby="tab-work" tabindex="-1" hidden>
+                <h2 class="cmd"><span class="cmd__prompt">ops@ground&#8209;station:~$</span> ls ./missions --long</h2>
+
+                <ol class="dossiers">
+                  <!-- ✎ duplicate an <li> to add a project -->
+                  <li class="dossier">
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;01</span><span class="dossier__year">2025</span></div>
+                    <div class="dossier__body">
+                      <h3 class="dossier__name">SomaiyaSAT Ground Station</h3>
+                      <p class="dossier__desc">Web console for a student CubeSat program — live pass
+                         prediction, decoded telemetry, and a command queue that survives a dropped link.</p>
+                      <ul class="tags"><li>Next.js</li><li>Python</li><li>WebSocket</li><li>SGP4</li></ul>
+                      <a class="dossier__link" href="#">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
+                    </div>
+                    <span class="dossier__state is-live">LIVE</span>
+                  </li>
+
+                  <li class="dossier">
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;02</span><span class="dossier__year">2025</span></div>
+                    <div class="dossier__body">
+                      <h3 class="dossier__name">Climate Atlas</h3>
+                      <p class="dossier__desc">Geospatial dashboard over four decades of station data.
+                         PostGIS on the back, tiled vector rendering on the front, no loading spinner
+                         longer than a heartbeat.</p>
+                      <ul class="tags"><li>PostGIS</li><li>FastAPI</li><li>MapLibre</li></ul>
+                      <a class="dossier__link" href="#">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
+                    </div>
+                    <span class="dossier__state is-live">LIVE</span>
+                  </li>
+
+                  <li class="dossier">
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;03</span><span class="dossier__year">2024</span></div>
+                    <div class="dossier__body">
+                      <h3 class="dossier__name">WX&#8209;Relay</h3>
+                      <p class="dossier__desc">Solar&#8209;powered weather node that reports over LoRa.
+                         Sleeps at 40&nbsp;&micro;A, wakes on the quarter hour, and has not needed a
+                         battery swap since the day it went up.</p>
+                      <ul class="tags"><li>ESP32</li><li>LoRa</li><li>C++</li></ul>
+                      <a class="dossier__link" href="#">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
+                    </div>
+                    <span class="dossier__state is-arch">ARCHIVE</span>
+                  </li>
+
+                  <li class="dossier">
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;04</span><span class="dossier__year">2026</span></div>
+                    <div class="dossier__body">
+                      <h3 class="dossier__name">Untitled &mdash; in fabrication</h3>
+                      <p class="dossier__desc">Placeholder slot. Swap in the project you're mid&#8209;way
+                         through; the console reads better with something unfinished on it.</p>
+                      <ul class="tags"><li>TBD</li></ul>
+                    </div>
+                    <span class="dossier__state is-build">BUILD</span>
+                  </li>
+                </ol>
+              </section>
+
+              <!-- ═══ CH 4 · SYS ══════════════════════════ -->
+              <section class="ch" id="ch-sys" role="tabpanel" aria-labelledby="tab-sys" tabindex="-1" hidden>
+                <h2 class="cmd"><span class="cmd__prompt">ops@ground&#8209;station:~$</span> lsmod</h2>
+
+                <ul class="modules">
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">embedded.ko</span><span class="mod__val">C, C++, ESP32, STM32, FreeRTOS</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">web.ko</span><span class="mod__val">TypeScript, React, Next.js, Tailwind</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">data.ko</span><span class="mod__val">Python, pandas, PostgreSQL, PostGIS</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">radio.ko</span><span class="mod__val">GNU Radio, SDR, LoRa, packet decode</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">infra.ko</span><span class="mod__val">Docker, Linux, Git, CI pipelines</span></li>
+                  <li><span class="mod__warn">[LOAD]</span><span class="mod__name">rust.ko</span><span class="mod__val">loading &mdash; 61% complete</span></li>
+                </ul>
+
+                <p class="footnote">Modules marked <span class="mod__warn">[LOAD]</span> are in progress.
+                   The list is honest about that on purpose.</p>
+              </section>
+
+              <!-- ═══ CH 5 · COMMS ════════════════════════ -->
+              <section class="ch" id="ch-comms" role="tabpanel" aria-labelledby="tab-comms" tabindex="-1" hidden>
+                <h2 class="cmd"><span class="cmd__prompt">ops@ground&#8209;station:~$</span> ./open&#8209;downlink</h2>
+
+                <p class="lede lede--comms">The station listens on all of these. Mail gets the fastest reply.</p>
+
+                <ul class="comms">
+                  <!-- ✎ real addresses -->
+                  <li><a href="mailto:mannkuvadiya2006@gmail.com"><span class="comms__k">MAIL</span><span class="comms__v">mannkuvadiya2006@gmail.com</span></a></li>
+                  <li><a href="#"><span class="comms__k">GITHUB</span><span class="comms__v">github.com/&#8230;</span></a></li>
+                  <li><a href="#"><span class="comms__k">LINKEDIN</span><span class="comms__v">linkedin.com/in/&#8230;</span></a></li>
+                  <li><a href="#"><span class="comms__k">RESUME</span><span class="comms__v">resume.pdf</span></a></li>
+                </ul>
+
+                <p class="sign">END OF TRANSMISSION<span class="caret" aria-hidden="true"></span></p>
+              </section>
+
+            </main>
+          </div>
+
+          <!-- Boot sequence, drawn as screen content so it bends too -->
+          <div class="boot" id="boot" aria-hidden="true">
+            <pre class="boot__log" id="bootLog"></pre>
+          </div>
+          <p class="boot__hint" id="bootHint" aria-hidden="true">press any key to skip</p>
+
+          <!-- telemetry stays on the screen; only controls live on the body -->
+          <div class="statusline" aria-hidden="true">
+            <span class="statusline__ch" id="slCh">CH1 SIGNAL</span>
+            <span class="statusline__bar"><i id="slSig"></i></span>
+            <span class="statusline__m">RX <b id="slRx">0.0</b> kb/s</span>
+            <span class="statusline__m statusline__m--wide">UPTIME <b id="slUp">00:00:00</b></span>
+          </div>
+
+          <!-- scanlines bend with the geometry. No aperture grille:
+               a monochrome tube has no shadow mask. -->
+          <div class="fx fx--scan" aria-hidden="true"></div>
+
+          <!-- static, sync loss, interference bursts -->
+          <canvas class="tv" id="tv" aria-hidden="true"></canvas>
+         </div>
+        </div>
+
+        <!-- these hug the tube outline, so they stay unbent -->
+        <div class="fx fx--bloom" aria-hidden="true"></div>
+        <div class="fx fx--glare" aria-hidden="true"></div>
+        <div class="fx fx--vig"   aria-hidden="true"></div>
+
+        <button class="standby" id="standby" hidden>
+          <span class="standby__dot"></span>
+          <span class="standby__label">NO SIGNAL</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── control fascia, moulded into the cabinet ─────── -->
+    <div class="fascia">
+      <span class="badge">KVD&#8209;4400<i>data display terminal</i></span>
+
+      <nav class="channels" role="tablist" aria-label="Channels">
+        <button class="chan is-on" role="tab" id="tab-signal" aria-controls="ch-signal" aria-selected="true"  data-target="ch-signal"><b>1</b><span>SIGNAL</span></button>
+        <button class="chan"       role="tab" id="tab-id"     aria-controls="ch-id"     aria-selected="false" data-target="ch-id"     tabindex="-1"><b>2</b><span>ID</span></button>
+        <button class="chan"       role="tab" id="tab-work"   aria-controls="ch-work"   aria-selected="false" data-target="ch-work"   tabindex="-1"><b>3</b><span>WORK</span></button>
+        <button class="chan"       role="tab" id="tab-sys"    aria-controls="ch-sys"    aria-selected="false" data-target="ch-sys"    tabindex="-1"><b>4</b><span>SYS</span></button>
+        <button class="chan"       role="tab" id="tab-comms"  aria-controls="ch-comms"  aria-selected="false" data-target="ch-comms"  tabindex="-1"><b>5</b><span>COMMS</span></button>
+      </nav>
+
+      <div class="controls">
+        <span class="ctl-label" aria-hidden="true">TUBE</span>
+        <button class="knob" id="knob" aria-label="Tube: P4 white. Switch to P1 green." title="Tube: P4 white / P1 green">
+          <span class="knob__dial" aria-hidden="true"></span>
+        </button>
+        <button class="pwr" id="power" aria-label="Power off" title="Power">
+          <span aria-hidden="true">&#9211;</span>
+        </button>
+        <span class="led" id="led" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <span class="vent" aria-hidden="true"></span>
+  </div>
+ </div>
+</div>
+
+<!-- ══ GEOMETRY ═══════════════════════════════════════════
+     tubeShape — the bulged outline; corners fall away to black
+     tubeWarp  — barrel displacement; the map is generated in crt.js -->
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- A late-model computer tube: a rounded rectangle with a generous
+         corner radius and only a hair of bow along each edge. The earlier
+         path pinched the corners hard and read as a fishbowl. -->
+    <clipPath id="tubeShape" clipPathUnits="objectBoundingBox">
+      <path d="M.088,.007 Q.5,-.005 .912,.007 Q.982,.014 .992,.108
+               Q1.003,.5 .992,.892 Q.982,.986 .912,.993
+               Q.5,1.005 .088,.993 Q.018,.986 .008,.892
+               Q-.003,.5 .008,.108 Q.018,.014 .088,.007 Z"/>
+    </clipPath>
+
+    <filter id="tubeWarp" color-interpolation-filters="sRGB"
+            x="0" y="0" width="100%" height="100%">
+      <feImage id="warpMap" result="map" preserveAspectRatio="none"/>
+      <feDisplacementMap in="SourceGraphic" in2="map"
+                         scale="120" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="crt.js"></script>
+</body>
+</html>
