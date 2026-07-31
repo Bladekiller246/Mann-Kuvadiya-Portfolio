@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mann Kuvadiya — Ground Station</title>
-<meta name="description" content="Portfolio of Mann Kuvadiya — embedded systems, ground-station tooling, and data interfaces.">
+<meta name="description" content="Portfolio of Mann Kuvadiya — vulnerability assessment, penetration testing, and privacy-preserving systems.">
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap"></noscript>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="win98.css">
+<link rel="stylesheet" href="overdrive.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2308090a'/><text x='16' y='23' font-size='20' text-anchor='middle' fill='%23eef2f3' font-family='monospace'>&gt;_</text></svg>">
 </head>
 <body class="is-cold">
@@ -49,11 +50,11 @@
                 </h1>
 
                 <!-- ✎ one-line thesis -->
-                <p class="thesis" data-type>I build the software that talks to hardware.</p>
+                <p class="thesis" data-type>I find the hole, prove it opens, then write the fix.</p>
 
                 <!-- ✎ supporting line -->
-                <p class="lede">Embedded systems, ground&#8209;station tooling, and the dashboards that
-                   make sense of what comes back down.</p>
+                <p class="lede">Vulnerability assessment and penetration testing &mdash; and, pointed the
+                   other way, systems built so there is nothing worth stealing on the server.</p>
 
                 <figure class="analyzer">
                   <canvas id="spectrum" width="640" height="120" role="img"
@@ -78,19 +79,20 @@
 
                 <!-- ✎ bio -->
                 <div class="prose">
-                  <p>I'm an engineering student who got pulled into this by a radio and a
-                     soldering iron, and never really left. Most of what I build sits on the
-                     seam between a physical device and the person trying to understand it —
-                     firmware on one end, a legible interface on the other.</p>
-                  <p>Right now I spend my time on satellite ground&#8209;station software, geospatial
-                     data pipelines, and the unglamorous plumbing that keeps telemetry flowing
-                     when the pass is only eleven minutes long.</p>
+                  <p>Third&#8209;year B.Tech IT student at K.&nbsp;J. Somaiya College of Engineering, on the
+                     Honours track in Cyber Security. Most of what I do is one loop run in both
+                     directions: take something apart until it gives, then build something that
+                     doesn't.</p>
+                  <p>Taking apart looks like the DVWA finding below &mdash; a missing extension check
+                     that ends in remote code execution, written up the way a client would need to
+                     read it. Building looks like PrivacyLayer: an identity system with no personal
+                     data on the server to breach in the first place.</p>
                 </div>
 
                 <dl class="spec">
                   <div><dt>BASED</dt><dd>Mumbai, IN &middot; UTC+5:30</dd></div>          <!-- ✎ -->
-                  <div><dt>FOCUS</dt><dd>Embedded &middot; RF &middot; Data interfaces</dd></div> <!-- ✎ -->
-                  <div><dt>LEARNING</dt><dd>Rust, SDR signal chains</dd></div>            <!-- ✎ -->
+                  <div><dt>FOCUS</dt><dd>VAPT &middot; Web app security &middot; Network recon</dd></div> <!-- ✎ -->
+                  <div><dt>LEARNING</dt><dd>Digital forensics, Google Cybersecurity cert</dd></div> <!-- ✎ -->
                   <div><dt>STATUS</dt><dd class="ok">Open to internships</dd></div>       <!-- ✎ -->
                 </dl>
               </section>
@@ -102,50 +104,56 @@
                 <ol class="dossiers">
                   <!-- ✎ duplicate an <li> to add a project -->
                   <li class="dossier">
-                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;01</span><span class="dossier__year">2025</span></div>
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;01</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
-                      <h3 class="dossier__name">SomaiyaSAT Ground Station</h3>
-                      <p class="dossier__desc">Web console for a student CubeSat program — live pass
-                         prediction, decoded telemetry, and a command queue that survives a dropped link.</p>
-                      <ul class="tags"><li>Next.js</li><li>Python</li><li>WebSocket</li><li>SGP4</li></ul>
-                      <a class="dossier__link" href="#">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
+                      <h3 class="dossier__name">PrivacyLayer</h3>
+                      <p class="dossier__desc">Self&#8209;sovereign identity. Prove you hold a degree, or
+                         that you're over 18, without handing over the data behind it &mdash; credentials
+                         stay on the device, the verifier learns the minimum, and there is no
+                         server&#8209;side PII to breach by construction. The crypto core runs on Node
+                         built&#8209;ins with zero runtime dependencies.</p>
+                      <ul class="tags"><li>TypeScript</li><li>W3C VC 2.0</li><li>Groth16 ZK</li><li>Ed25519</li><li>Solidity</li></ul>
+                      <span class="dossier__note">PRIVATE REPOSITORY</span>
                     </div>
                     <span class="dossier__state is-live">LIVE</span>
                   </li>
 
                   <li class="dossier">
-                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;02</span><span class="dossier__year">2025</span></div>
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;02</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
-                      <h3 class="dossier__name">Climate Atlas</h3>
-                      <p class="dossier__desc">Geospatial dashboard over four decades of station data.
-                         PostGIS on the back, tiled vector rendering on the front, no loading spinner
-                         longer than a heartbeat.</p>
-                      <ul class="tags"><li>PostGIS</li><li>FastAPI</li><li>MapLibre</li></ul>
-                      <a class="dossier__link" href="#">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
+                      <h3 class="dossier__name">Unrestricted File Upload &rarr; RCE</h3>
+                      <p class="dossier__desc">VAPT finding against DVWA's upload module: no extension,
+                         MIME&#8209;type or magic&#8209;byte validation, on a directory sitting inside the web
+                         root. Chained to remote code execution with a benign PHP shell, rated
+                         Critical, and written up with root cause, reproduction, business impact and
+                         a four&#8209;part fix.</p>
+                      <ul class="tags"><li>VAPT</li><li>Burp Suite</li><li>DVWA</li><li>PHP</li></ul>
+                      <a class="dossier__link" href="https://github.com/Bladekiller246/dvwa-file-upload-Vulnerability-" target="_blank" rel="noopener">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
                     </div>
                     <span class="dossier__state is-live">LIVE</span>
                   </li>
 
                   <li class="dossier">
-                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;03</span><span class="dossier__year">2024</span></div>
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;03</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
-                      <h3 class="dossier__name">WX&#8209;Relay</h3>
-                      <p class="dossier__desc">Solar&#8209;powered weather node that reports over LoRa.
-                         Sleeps at 40&nbsp;&micro;A, wakes on the quarter hour, and has not needed a
-                         battery swap since the day it went up.</p>
-                      <ul class="tags"><li>ESP32</li><li>LoRa</li><li>C++</li></ul>
-                      <a class="dossier__link" href="#">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
+                      <h3 class="dossier__name">SomaiyaSat &middot; SomaiyaPod</h3>
+                      <p class="dossier__desc">Mission site and ground&#8209;station tooling for a 5&nbsp;cm
+                         PocketQube carrying an onboard AI data router and a multi&#8209;mode amateur radio
+                         payload. Ground&#8209;station registration and a telemetry alert dashboard.</p>
+                      <ul class="tags"><li>Next.js</li><li>JavaScript</li><li>M17</li><li>SSTV</li><li>TT&amp;C</li></ul>
+                      <span class="dossier__note">PRIVATE REPOSITORY</span>
                     </div>
-                    <span class="dossier__state is-arch">ARCHIVE</span>
+                    <span class="dossier__state is-build">BUILD</span>
                   </li>
 
                   <li class="dossier">
                     <div class="dossier__id"><span class="dossier__desig">MSN&#8209;04</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
-                      <h3 class="dossier__name">Untitled &mdash; in fabrication</h3>
-                      <p class="dossier__desc">Placeholder slot. Swap in the project you're mid&#8209;way
-                         through; the console reads better with something unfinished on it.</p>
-                      <ul class="tags"><li>TBD</li></ul>
+                      <h3 class="dossier__name">E&#8209;Cell Impact on Engineering Campuses</h3>
+                      <p class="dossier__desc">Editor on a research paper examining what Entrepreneurship
+                         Cells actually do for the institutions that house them. Manuscript in
+                         preparation.</p>
+                      <ul class="tags"><li>Research</li><li>Editing</li></ul>
                     </div>
                     <span class="dossier__state is-build">BUILD</span>
                   </li>
@@ -161,12 +169,15 @@
                 <h2 class="cmd"><span class="cmd__prompt">ops@ground&#8209;station:~$</span> lsmod</h2>
 
                 <ul class="modules">
-                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">embedded.ko</span><span class="mod__val">C, C++, ESP32, STM32, FreeRTOS</span></li>
-                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">web.ko</span><span class="mod__val">TypeScript, React, Next.js, Tailwind</span></li>
-                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">data.ko</span><span class="mod__val">Python, pandas, PostgreSQL, PostGIS</span></li>
-                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">radio.ko</span><span class="mod__val">GNU Radio, SDR, LoRa, packet decode</span></li>
-                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">infra.ko</span><span class="mod__val">Docker, Linux, Git, CI pipelines</span></li>
-                  <li><span class="mod__warn">[LOAD]</span><span class="mod__name">rust.ko</span><span class="mod__val">loading &mdash; 61% complete</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">recon.ko</span><span class="mod__val">Nmap, Netcat, Wireshark</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">webapp.ko</span><span class="mod__val">Burp Suite, OWASP ZAP, DVWA</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">exploit.ko</span><span class="mod__val">Metasploit, John the Ripper, Exploit&#8209;DB</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">code.ko</span><span class="mod__val">Python (pandas/NumPy), C, C++, JavaScript</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">data.ko</span><span class="mod__val">MS SQL Server (T&#8209;SQL), MongoDB</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">infra.ko</span><span class="mod__val">Linux, Git, VS Code, Jupyter</span></li>
+                  <li><span class="mod__warn">[LOAD]</span><span class="mod__name">forensics.ko</span><span class="mod__val">honours coursework &mdash; in progress</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">aptech.crt</span><span class="mod__val">Web Designing and Development, Aptech &mdash; 2018</span></li>
+                  <li><span class="mod__warn">[LOAD]</span><span class="mod__name">gcyber.crt</span><span class="mod__val">Google Cybersecurity Professional, Coursera &mdash; expected Dec 2026</span></li>
                 </ul>
 
                 <p class="footnote">Modules marked <span class="mod__warn">[LOAD]</span> are in progress.
@@ -183,8 +194,10 @@
                   <!-- ✎ real addresses -->
                   <li><a href="mailto:mannkuvadiya2006@gmail.com"><span class="comms__k">MAIL</span><span class="comms__v">mannkuvadiya2006@gmail.com</span></a></li>
                   <li><a href="https://github.com/Bladekiller246" target="_blank" rel="noopener"><span class="comms__k">GITHUB</span><span class="comms__v">github.com/Bladekiller246</span></a></li>
-                  <li><a href="#"><span class="comms__k">LINKEDIN</span><span class="comms__v">linkedin.com/in/&#8230;</span></a></li>
-                  <li><a href="#"><span class="comms__k">RESUME</span><span class="comms__v">resume.pdf</span></a></li>
+                  <li><a href="https://linkedin.com/in/mann-kuvadiya" target="_blank" rel="noopener"><span class="comms__k">LINKEDIN</span><span class="comms__v">linkedin.com/in/mann&#8209;kuvadiya</span></a></li>
+                  <!-- ✎ drop Mann_Kuvadiya_Resume.pdf in the repo root; this link
+                       is dead until the file is there -->
+                  <li><a href="Mann_Kuvadiya_Resume.pdf" target="_blank" rel="noopener"><span class="comms__k">RESUME</span><span class="comms__v">Mann_Kuvadiya_Resume.pdf</span></a></li>
                 </ul>
 
                 <!-- ✎ the breadcrumb to the restricted segment. The answer to
@@ -235,9 +248,12 @@
             <div class="gate__inner">
               <p class="gate__eyebrow">RESTRICTED SEGMENT &middot; AUTHORISATION REQUIRED</p>
               <h2 class="gate__title">SELECT ACCESS LEVEL</h2>
+              <!-- GUEST first, and focused on open: it is the way in. ADMIN
+                   is the door that is not for the visitor, and is dressed
+                   like it. -->
               <div class="gate__pair">
-                <button class="gbtn" id="gateAdmin"><b>ADMIN</b><span>full station control</span></button>
-                <button class="gbtn" id="gateGuest"><b>GUEST</b><span>read&#8209;only workstation</span></button>
+                <button class="gbtn gbtn--guest" id="gateGuest"><b>GUEST</b><span>read&#8209;only workstation</span></button>
+                <button class="gbtn gbtn--admin" id="gateAdmin"><b>ADMIN</b><span>authorised personnel only</span></button>
               </div>
               <button class="gate__back" id="gateBack">&larr; back to terminal</button>
             </div>
@@ -287,17 +303,28 @@
             </div>
           </div>
 
+          <!-- ══ KVD//OVERDRIVE — the admin segment ══
+               Built entirely by overdrive.js; empty until credentials
+               clear, and emptied again on eject. -->
+          <div class="od" id="od" hidden></div>
+
           <!-- scanlines bend with the geometry -->
           <div class="fx fx--scan" aria-hidden="true"></div>
           <!-- and a slow luminance band drifting down behind them -->
           <div class="fx fx--roll" aria-hidden="true"></div>
-          <!-- shadow mask: only a colour tube has one, so only in OS mode -->
-          <div class="fx fx--grille" aria-hidden="true"></div>
 
           <!-- static, sync loss, interference bursts -->
           <canvas class="tv" id="tv" aria-hidden="true"></canvas>
          </div>
         </div>
+
+        <!-- The shadow mask. Outside .warp on purpose: .warp carries an
+             SVG filter, which isolates it as a blending group, and the
+             dark background lives out here on .glass — so a mask that
+             multiplies has to be out here too or it has nothing opaque
+             to multiply against. It gives up being bent, which at a
+             1-3px stripe pitch nobody can see. -->
+        <div class="fx fx--grille" aria-hidden="true"></div>
 
         <!-- these hug the tube outline, so they stay unbent -->
         <div class="fx fx--bloom" aria-hidden="true"></div>
@@ -325,7 +352,12 @@
 
       <div class="controls">
         <span class="ctl-label" aria-hidden="true">TUBE</span>
-        <button class="knob" id="knob" aria-label="Tube: P4 white. Switch to P1 green." title="Tube: P4 white / P1 green">
+        <button class="knob knob--tube" id="knob" aria-label="Tube: P4 white. Switch to P1 green." title="Tube: P4 white / P1 green">
+          <span class="knob__dial" aria-hidden="true"></span>
+        </button>
+        <span class="ctl-label ctl-label--mask" aria-hidden="true">MASK</span>
+        <button class="knob knob--mask" id="mask" title="Shadow mask: none / dot / grille"
+                aria-label="Shadow mask: none. Activate to change.">
           <span class="knob__dial" aria-hidden="true"></span>
         </button>
         <button class="pwr" id="power" aria-label="Power off" title="Power">
@@ -377,6 +409,10 @@
 </svg>
 
 <script src="crt.js"></script>
+<!-- first: both shells record into it, and it must exist before either runs -->
+<script src="journal.js"></script>
+<!-- before win98.js: it looks for window.OVERDRIVE when credentials clear -->
+<script src="overdrive.js"></script>
 <script src="win98.js"></script>
 <!-- last: it feeds the two above once the API answers, and the page is
      complete without it -->

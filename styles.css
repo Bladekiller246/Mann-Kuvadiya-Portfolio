@@ -129,14 +129,37 @@ body{
     0 0 0 1px #6d6553;
 }
 
-/* moulded plastic grain + top sheen */
+/* Moulded plastic: speckle, grain, and the sheen off the top mould.
+
+   The speckle is real fractal noise from an inline SVG filter rather
+   than stacked gradients — injection-moulded ABS has an irregular
+   pebble to it that a repeating pattern cannot fake, and the eye finds
+   the repeat immediately at this size. Self-contained as a data URI, so
+   nothing is fetched.
+
+   It paints over the fascia, which is correct — the cabinet and the
+   control panel are one moulding — and stops at .well, which is
+   positioned and therefore composites above this. */
 .cabinet::before{
   content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
   background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E"),
     repeating-linear-gradient(90deg, rgb(0 0 0 / .012) 0 1px, transparent 1px 2px),
     radial-gradient(85% 50% at 30% -6%, rgb(255 255 255 / .5), transparent 58%),
     radial-gradient(70% 40% at 88% 104%, rgb(0 0 0 / .08), transparent 62%);
+  background-size:160px 160px, auto, auto, auto;
   mix-blend-mode:soft-light;
+}
+
+/* A second, coarser pass at low opacity. One noise layer reads as film
+   grain; two at different scales read as a surface. */
+.cabinet::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.28' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23m)' opacity='.5'/%3E%3C/svg%3E");
+  background-size:90px 90px;
+  opacity:.22;
+  mix-blend-mode:overlay;
 }
 
 /* moulded seam along the base */
@@ -258,12 +281,53 @@ body.is-cold .statusline{ opacity:0; pointer-events:none; }
   mix-blend-mode:screen;
 }
 
+/* The room, reflected in the faceplate. A real tube is a thick curved
+   sheet of glass in a lit room, so it carries a specular smear of
+   whatever is in front of it — the single strongest cue that you are
+   looking *at* glass rather than at a picture.
+
+   Static on purpose. The reflection of a room does not drift, and an
+   animated one reads as a lens flare in a game. It also sits hardest in
+   the upper-left, which is where a window normally is and where this
+   layout keeps the least text. */
 .fx--glare{
   z-index:12; clip-path:url(#tubeShape);
   background:
-    linear-gradient(152deg, rgb(255 255 255 / .07) 0%, transparent 22%),
-    radial-gradient(55% 30% at 26% 5%, rgb(255 255 255 / .06), transparent 70%);
+    /* the broad diagonal sheen down the top-left shoulder */
+    linear-gradient(148deg,
+      rgb(255 255 255 / .13) 0%,
+      rgb(255 255 255 / .05) 14%,
+      transparent 30%),
+    /* a weaker bounce coming back off the lower-right corner */
+    radial-gradient(60% 42% at 88% 96%, rgb(198 216 232 / .05), transparent 68%),
+    /* the faint edge-lit rim where the curve turns away */
+    radial-gradient(120% 100% at 50% 50%, transparent 62%, rgb(255 255 255 / .05) 92%);
   mix-blend-mode:screen;
+}
+
+/* The hot core of the reflection: a soft-edged ellipse, tilted to lie
+   along the curve instead of sitting square to the screen. A gradient
+   cannot be rotated, so it rides its own rotated element. */
+.fx--glare::before{
+  content:""; position:absolute;
+  left:-6%; top:-10%; width:66%; height:46%;
+  transform:rotate(-24deg);
+  background:radial-gradient(closest-side ellipse at 50% 50%,
+    rgb(255 255 255 / .17) 0%,
+    rgb(226 240 255 / .09) 42%,
+    rgb(255 255 255 / .03) 68%,
+    transparent 100%);
+  filter:blur(6px);
+}
+
+/* and the tight secondary just below it — two sources, never one */
+.fx--glare::after{
+  content:""; position:absolute;
+  left:12%; top:26%; width:26%; height:13%;
+  transform:rotate(-24deg);
+  background:radial-gradient(closest-side ellipse at 50% 50%,
+    rgb(255 255 255 / .10), transparent 100%);
+  filter:blur(5px);
 }
 
 .fx--vig{
@@ -272,6 +336,7 @@ body.is-cold .statusline{ opacity:0; pointer-events:none; }
     inset 0 0 clamp(22px,4.5vmin,72px) rgb(0 0 0 / .42),
     inset 0 0 14px rgb(0 0 0 / .24);
 }
+
 
 /* whole-screen brightness flicker */
 .glass::after{
@@ -447,6 +512,14 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
   transition:border-color .2s ease, gap .2s ease;
 }
 .dossier__link:hover{ border-color:var(--p); gap:.8rem; }
+
+/* A project with no public repo says so — dashed and dim, so it never
+   imitates a link the visitor can follow and won't. */
+.dossier__note{
+  display:inline-block; font-size:.6rem; letter-spacing:.18em;
+  color:var(--ink-dim); border:1px dashed var(--p-dim);
+  padding:.16rem .45rem;
+}
 
 /* States are distinguished by weight and border style, not hue —
    a monochrome tube cannot show colour. */
@@ -750,18 +823,28 @@ body.is-alt .chan.is-on{ opacity:.6; }
   transform-origin:50% 100%;
   transition:rotate .3s cubic-bezier(.3,1.5,.5,1);
 }
-html[data-phosphor="p1"] .knob__dial{ rotate:132deg; }
+/* Everything from here to the gauge ring belongs to the TUBE knob
+   alone. It was written when the fascia had one knob and matched any
+   .knob; the mask knob then inherited all of it — its dial swung with
+   the phosphor, it took the grab cursor, and it wore the volume gauge.
+   Scoped to .knob--tube so a third knob can be added without repeating
+   the same bug. */
+html[data-phosphor="p1"] .knob--tube .knob__dial{ rotate:132deg; }
 
 /* In OS mode the knob is a volume control: grab-and-turn, and crt.js
    writes an inline rotate that outranks the phosphor rule above. The
    snappy phosphor easing would lag a live drag, so it goes flat. */
-body.is-win98 .knob{ cursor:grab; touch-action:none; }
-body.is-win98 .knob:active{ cursor:grabbing; }
-body.is-win98 .knob__dial{ transition:rotate .06s linear; }
+body.is-win98 .knob--tube,
+body.is-overdrive .knob--tube{ cursor:grab; touch-action:none; }
+body.is-win98 .knob--tube:active,
+body.is-overdrive .knob--tube:active{ cursor:grabbing; }
+body.is-win98 .knob--tube .knob__dial,
+body.is-overdrive .knob--tube .knob__dial{ transition:rotate .06s linear; }
 
 /* gauge ring — fills clockwise with the level, so the setting is
-   readable without turning anything */
-.knob::after{
+   readable without turning anything. Volume only, so the tube knob
+   only. */
+.knob--tube::after{
   content:""; position:absolute; inset:-5px; border-radius:50%;
   pointer-events:none; opacity:0; transition:opacity .25s ease;
   background:conic-gradient(from 225deg,
@@ -771,7 +854,8 @@ body.is-win98 .knob__dial{ transition:rotate .06s linear; }
   -webkit-mask:radial-gradient(circle, transparent 0 62%, #000 63%);
           mask:radial-gradient(circle, transparent 0 62%, #000 63%);
 }
-body.is-win98 .knob::after{ opacity:.55; }
+body.is-win98 .knob--tube::after,
+body.is-overdrive .knob--tube::after{ opacity:.55; }
 
 .pwr{
   flex:none; border:0; cursor:pointer;

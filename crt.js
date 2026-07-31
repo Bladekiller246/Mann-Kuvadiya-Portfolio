@@ -876,6 +876,39 @@
     setSafeArea();
   }
 
+  /* ── §8b · THE MASK KNOB ────────────────────────────────
+     Three positions, cycled: none → dot → grille. The looks themselves
+     are in win98.css; this only decides which one is on and remembers
+     it, because a picture setting the visitor chose should still be
+     there next time — same reasoning as the volume. */
+
+  const MASKS  = ['none', 'dot', 'grille'];
+  const MASK_L = ['none', 'shadow mask', 'aperture grille'];
+  const maskKnob = $('#mask');
+  let maskAt = 0;
+
+  try {
+    const saved = MASKS.indexOf(localStorage.getItem('kvd-mask'));
+    if (saved > 0) maskAt = saved;
+  } catch (_) { /* private mode: not worth failing over */ }
+
+  function setMask(i) {
+    maskAt = (i + MASKS.length) % MASKS.length;
+    body.dataset.mask = MASKS[maskAt];
+    maskKnob.setAttribute('aria-label',
+      `Shadow mask: ${MASK_L[maskAt]}. Activate to change.`);
+    try { localStorage.setItem('kvd-mask', MASKS[maskAt]); } catch (_) {}
+  }
+
+  maskKnob.addEventListener('click', e => {
+    e.stopPropagation();
+    audio.ensure();
+    audio.key?.();
+    setMask(maskAt + 1);
+  });
+
+  setMask(maskAt);
+
   window.KVD = {
     burst,
     audio,
@@ -941,11 +974,17 @@
      than one grip. */
 
   const knob = $('#knob');
-  const dial = $('.knob__dial');
+  // scoped: a bare '.knob__dial' takes whichever knob is first in the
+  // DOM, which is only the right one by accident
+  const dial = $('.knob__dial', knob);
   const SWEEP = 135;               // degrees either side of centre
   const DETENT = 0.05;             // volume per audible click
 
-  const osMode = () => body.classList.contains('is-win98');
+  /* The knob is a phosphor selector on the terminal and a volume
+     control on anything with an OS on it — either OS. Adding a second
+     one meant this could no longer name a single class. */
+  const osMode = () =>
+    body.classList.contains('is-win98') || body.classList.contains('is-overdrive');
 
   function paintDial() {
     if (!dial) return;

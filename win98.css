@@ -31,11 +31,89 @@ body.is-alt .scroll,
 body.is-alt .statusline{ opacity:0; pointer-events:none; }
 
 /* a colour tube has a shadow mask; the mono one does not */
+/* Sits with the other unbent layers now, under the bloom and the
+   glare — the mask is at the phosphor, the haze and the reflection are
+   in front of it. Clipped to the tube outline like its neighbours. */
 .fx--grille{
-  z-index:7; opacity:0; transition:opacity .5s ease;
+  z-index:10; clip-path:url(#tubeShape);
+  opacity:0; transition:opacity .5s ease;
   background-image:repeating-linear-gradient(90deg,
     rgb(255 0 0 / .07) 0 1px, rgb(0 255 0 / .07) 1px 2px, rgb(0 0 255 / .07) 2px 3px);
 }
+
+/* ── the mask knob ───────────────────────────────────────
+   Two phosphor layouts, chosen from the fascia. These are the two ways
+   a real tube actually laid out its colour, not two filters:
+
+   DOT    a shadow-mask tube — round triads punched through a steel
+          plate, offset row to row so the holes tile hexagonally. Fine,
+          slightly soft, and what most home sets used.
+   GRILLE an aperture-grille tube (Trinitron and its imitators) — no
+          plate, just continuous vertical phosphor stripes held by two
+          taut wires. Brighter, more saturated, and visibly striped.
+
+   Both sit inside .warp, so the mask bends with the tube's geometry
+   the way a real one does. NONE leaves the existing behaviour exactly
+   as it was: nothing in the terminal, a faint grille under Windows.
+
+   Deliberate note: a monochrome tube has no mask at all. Turning one on
+   in terminal mode is a choice the operator is making, not physics —
+   which is why the default position is NONE. */
+
+/* Both masks multiply rather than paint over.
+
+   A mask is a plate that *blocks* light between phosphors — it takes
+   away, it never adds. Painted over the picture with normal blending it
+   tints the black areas, which is backwards twice over: black is where
+   the beam is off, so there is nothing there for a mask to act on, and
+   an unlit screen showing colour stripes is the one thing a real tube
+   never does.
+
+   Under `multiply`, black × anything stays black and the stripes only
+   bite where there is light to take. That also changes how the colours
+   are written: each stripe is near-white with its own channel left
+   alone and the other two pulled down, because it is a filter, not a
+   pigment. #ffcaca passes red and cuts green and blue by ~21%. */
+
+/* DOT — triads, plus a row rhythm so they read as holes not stripes.
+   The two layers multiply against each other before the whole thing
+   multiplies against the picture. */
+body[data-mask="dot"] .fx--grille{
+  opacity:1;
+  background-image:
+    repeating-linear-gradient(90deg,
+      #ffcaca 0 1px, #caffca 1px 2px, #cacaff 2px 3px),
+    repeating-linear-gradient(180deg,
+      #d2d2d2 0 1px, #fff 1px 3px);
+  background-blend-mode:multiply;
+  mix-blend-mode:multiply;
+}
+
+/* GRILLE — wider continuous stripes, no row break at all. A grille has
+   no plate to lose light to, so it bites harder than the dot mask. */
+body[data-mask="grille"] .fx--grille{
+  opacity:1;
+  background-image:repeating-linear-gradient(90deg,
+    #ffbcbc 0 2px, #bcffbc 2px 4px, #bcbcff 4px 6px);
+  mix-blend-mode:multiply;
+}
+/* an aperture grille throws more light, so the scanline between rows
+   has to bite harder or the picture turns to mush */
+body[data-mask="grille"] .fx--scan{
+  background-image:repeating-linear-gradient(180deg,
+    rgb(0 0 0 / .44) 0 2px, transparent 2px 4px);
+}
+/* and it halates — bright phosphor bleeding into its neighbours */
+body[data-mask="grille"] .fx--bloom{
+  background:radial-gradient(72% 58% at 50% 48%, rgb(var(--p-glow) / .11), transparent 74%);
+}
+
+/* the dial points at the selected position */
+body[data-mask="dot"]    .knob--mask .knob__dial{ rotate:120deg; }
+body[data-mask="grille"] .knob--mask .knob__dial{ rotate:240deg; }
+
+/* the fascia is tight; the legend goes before the control does */
+@media (max-width:560px){ .ctl-label--mask{ display:none; } }
 body.is-win98 .fx--grille{ opacity:1; }
 /* The overlays are eased right back in OS mode: small UI text has to
    stay legible through them, unlike the terminal's big phosphor type. */
@@ -87,6 +165,73 @@ body.is-win98 .fx--grille{ opacity:.5; }
 .gbtn:hover{ background:rgb(var(--p-glow) / .09); border-color:var(--p); color:var(--p); }
 .gbtn--sm{ justify-items:center; padding:.5rem .9rem; font-size:.66rem; letter-spacing:.18em; color:var(--p); }
 
+/* ── the two doors ───────────────────────────────────────
+   The only place in the terminal that shows hue. Everything above the
+   gate is single-phosphor on purpose — so colour arriving here reads as
+   the machine changing character, which is exactly what happens next:
+   the OS boots in colour. Two temperatures, and the visitor should be
+   able to tell which door is theirs without reading a word. */
+.gate{ --guest:76 224 122; --admin:226 58 46; }
+
+/* GUEST · lit, and quietly moving. The one you are meant to take. */
+.gbtn--guest{
+  position:relative; overflow:hidden;
+  border-color:rgb(var(--guest) / .55);
+  background:rgb(var(--guest) / .07);
+  color:rgb(var(--guest) / .82);
+  box-shadow:0 0 18px rgb(var(--guest) / .15), inset 0 0 22px rgb(var(--guest) / .06);
+}
+.gbtn--guest b{ color:rgb(var(--guest)); text-shadow:0 0 .45em rgb(var(--guest) / .55); }
+.gbtn--guest:hover, .gbtn--guest:focus-visible{
+  background:rgb(var(--guest) / .14);
+  border-color:rgb(var(--guest)); color:rgb(var(--guest));
+  box-shadow:0 0 26px rgb(var(--guest) / .3), inset 0 0 26px rgb(var(--guest) / .1);
+}
+
+/* the shine: one narrow pass across the face, then a long wait. A
+   constant sweep would read as a loading bar rather than an invitation. */
+.gbtn--guest::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(105deg,
+    transparent 38%, rgb(var(--guest) / .20) 47%,
+    rgb(255 255 255 / .30) 50%, rgb(var(--guest) / .20) 53%, transparent 62%);
+  transform:translateX(-120%);
+  animation:gShine 5s ease-in-out 1s infinite;
+}
+@keyframes gShine{ 0%{ transform:translateX(-120%); } 24%,100%{ transform:translateX(120%); } }
+
+/* ADMIN · banked coals. Breathing slowly until you point at it, then
+   faster — the button notices you, which is the whole effect. */
+.gbtn--admin{
+  border-color:rgb(var(--admin) / .5);
+  background:
+    radial-gradient(120% 140% at 50% 125%, rgb(var(--admin) / .17), transparent 70%),
+    rgb(var(--admin) / .03);
+  color:rgb(var(--admin) / .78);
+  animation:aBreathe 3.6s ease-in-out infinite;
+}
+.gbtn--admin b{ color:rgb(var(--admin)); text-shadow:0 0 .5em rgb(var(--admin) / .6); }
+.gbtn--admin span{ color:rgb(var(--admin) / .62); }
+.gbtn--admin:hover, .gbtn--admin:focus-visible{
+  border-color:rgb(var(--admin)); color:rgb(var(--admin));
+  background:
+    radial-gradient(120% 140% at 50% 125%, rgb(var(--admin) / .3), transparent 70%),
+    rgb(var(--admin) / .08);
+  animation-duration:1.15s;
+}
+@keyframes aBreathe{
+  0%,100%{ box-shadow:inset 0 0 22px rgb(var(--admin) / .08), 0 0 0 rgb(var(--admin) / 0); }
+  50%    { box-shadow:inset 0 0 34px rgb(var(--admin) / .22), 0 0 22px rgb(var(--admin) / .18); }
+}
+
+/* Colour is the signal, so it cannot be the only one — the shapes have
+   to hold when the motion is switched off. */
+@media (prefers-reduced-motion:reduce){
+  .gbtn--guest::after{ animation:none; opacity:0; }
+  .gbtn--admin{ animation:none;
+    box-shadow:inset 0 0 28px rgb(var(--admin) / .16), 0 0 16px rgb(var(--admin) / .12); }
+}
+
 .gate__back{
   justify-self:start; margin-top:1rem;
   background:none; border:0; padding:.3rem 0;
@@ -111,6 +256,54 @@ body.is-win98 .fx--grille{ opacity:.5; }
   font-size:.66rem; letter-spacing:.14em; color:var(--p-mid);
 }
 .gate__msg.is-deny{ color:var(--p); }
+
+/* ── the set turns on you ────────────────────────────────
+   ADMIN is not another door, it is the same room lit differently. The
+   phosphor variables are re-pointed at red for the whole tube, so every
+   overlay that reads --p follows without being told: bloom, spill,
+   scanlines, the caret, the focus rings. One palette swap, and the
+   machine changes mood.
+
+   Red, specifically, because it is the only colour a warm phosphor
+   tube can throw that a viewer already reads as a warning. */
+body.is-admin{
+  --p:      #ff3b30;
+  --p-mid:  #b8241c;
+  --p-dim:  #4a0f0c;
+  --p-glow: 255 59 48;
+}
+
+/* the room breathing, slower than a resting pulse and deeper than the
+   idle flicker it replaces */
+body.is-admin .fx--vig{
+  box-shadow:
+    inset 0 0 clamp(40px,9vmin,140px) rgb(0 0 0 / .74),
+    inset 0 0 26px rgb(90 0 0 / .5);
+  animation:admPulse 5.4s ease-in-out infinite;
+}
+@keyframes admPulse{ 0%,100%{ opacity:.86; } 50%{ opacity:1; } }
+
+/* a haze the colour of a warning lamp, low and wide */
+body.is-admin .fx--bloom{
+  background:radial-gradient(84% 68% at 50% 48%, rgb(255 40 30 / .09), transparent 76%);
+}
+
+/* the scanlines bite harder — the picture is being driven hot */
+body.is-admin .fx--scan{ opacity:1; }
+
+body.is-admin .gate__eyebrow{ color:#ff5b52; }
+body.is-admin .gate__title{ text-shadow:0 0 .5em rgb(255 59 48 / .6); }
+
+/* the deny line stops being a status and starts being an alarm */
+body.is-admin .gate__msg.is-deny{
+  color:#ff6b60; animation:admDeny .5s steps(1) 3;
+}
+@keyframes admDeny{ 0%,100%{ opacity:1; } 50%{ opacity:.25; } }
+
+@media (prefers-reduced-motion:reduce){
+  body.is-admin .fx--vig,
+  body.is-admin .gate__msg.is-deny{ animation:none; }
+}
 
 
 /* ═══ 3 · OS BOOT ════════════════════════════════════════ */

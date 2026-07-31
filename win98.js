@@ -167,6 +167,25 @@
       <rect x="12" y="10" width="8" height="5" fill="#26374f"/>
       <rect x="12" y="18" width="8" height="4" fill="#26374f"/>`),
 
+    /* The three fan games get motifs off their own names — a die for the
+       roguelite, an eclipse, a vortex. Deliberately nothing borrowed from
+       the franchise they belong to. */
+    rogue: svg(`<rect x="3" y="3" width="26" height="26" fill="#101828" stroke="#000"/>
+      <rect x="8" y="8" width="16" height="16" rx="2" fill="#e6e6e6" stroke="#000"/>
+      <g fill="#b02a1e"><circle cx="12.4" cy="12.4" r="1.7"/><circle cx="19.6" cy="12.4" r="1.7"/>
+      <circle cx="16" cy="16" r="1.7"/><circle cx="12.4" cy="19.6" r="1.7"/>
+      <circle cx="19.6" cy="19.6" r="1.7"/></g>`),
+
+    eclipse: svg(`<rect x="3" y="3" width="26" height="26" fill="#0b1020" stroke="#000"/>
+      <circle cx="16" cy="16" r="9.5" fill="#ffd24a"/>
+      <circle cx="13.2" cy="14.8" r="8.4" fill="#0b1020"/>
+      <path d="M16 4.5v3M16 24.5v3M4.5 16h3M24.5 16h3" stroke="#ffe9a0" stroke-width="1.6"/>`),
+
+    vortex: svg(`<rect x="3" y="3" width="26" height="26" fill="#08131f" stroke="#000"/>
+      <path d="M16 6.5a9.5 9.5 0 1 1-9 12.4" fill="none" stroke="#3fc7f0" stroke-width="2.6"/>
+      <path d="M16 11.5a4.5 4.5 0 1 0 4.3 5.9" fill="none" stroke="#7ee1ff" stroke-width="2.2"/>
+      <circle cx="16" cy="16" r="1.7" fill="#fff"/>`),
+
     cal: svg(`<rect x="4" y="7" width="24" height="21" fill="#fff" stroke="#000"/>
       <rect x="4" y="7" width="24" height="6" fill="#a8202a" stroke="#000"/>
       <rect x="9" y="3" width="3" height="7" fill="#9a9a9a" stroke="#000"/>
@@ -181,14 +200,16 @@
      terminal channels, wearing a different shell. */
 
   const ABOUT_TEXT = [
-    "I'm an engineering student who got pulled into this by a radio and a",
-    'soldering iron, and never really left. Most of what I build sits on',
-    'the seam between a physical device and the person trying to understand',
-    'it - firmware on one end, a legible interface on the other.',
+    'Third-year B.Tech IT student at K. J. Somaiya College of Engineering,',
+    'on the Honours track in Cyber Security. Most of what I do is one loop',
+    'run in both directions: take something apart until it gives, then',
+    "build something that doesn't.",
     '',
-    'Right now I spend my time on satellite ground-station software,',
-    'geospatial data pipelines, and the unglamorous plumbing that keeps',
-    'telemetry flowing when the pass is only eleven minutes long.',
+    'Taking apart looks like the DVWA finding in PROJECTS - a missing',
+    'extension check that ends in remote code execution, written up the',
+    'way a client would need to read it. Building looks like PrivacyLayer:',
+    'an identity system with no personal data on the server to breach in',
+    'the first place.',
     '',
     'Based in Mumbai, IN (UTC+5:30). Currently open to internships.',
     '',
@@ -227,48 +248,67 @@
 
     projects: { title: 'Projects', icon: 'folder', w: 420, h: 250, body: `
       <div class="w98list">
-        ${item('doc', 'SomaiyaSAT.prj', 'proj1')}
-        ${item('doc', 'Climate Atlas.prj', 'proj2')}
-        ${item('doc', 'WX-Relay.prj', 'proj3')}
-        ${item('doc', 'Untitled.prj', 'proj4')}
+        ${item('doc', 'PrivacyLayer.prj', 'proj1')}
+        ${item('doc', 'DVWA-RCE.prj', 'proj2')}
+        ${item('doc', 'SomaiyaSat.prj', 'proj3')}
+        ${item('doc', 'E-Cell.prj', 'proj4')}
       </div>`,
       status: ['4 object(s)', '  '] },
 
-    proj1: { title: 'SomaiyaSAT Ground Station', icon: 'doc', w: 430, h: 250, pane: true, body: `
-      <h4>SomaiyaSAT Ground Station — 2025</h4>
-      <p>Web console for a student CubeSat program: live pass prediction, decoded
-         telemetry, and a command queue that survives a dropped link.</p>
-      <p><b>Built with:</b> Next.js, Python, WebSocket, SGP4<br>
-         <b>Status:</b> Live</p>` },
-    proj2: { title: 'Climate Atlas', icon: 'doc', w: 430, h: 250, pane: true, body: `
-      <h4>Climate Atlas — 2025</h4>
-      <p>Geospatial dashboard over four decades of station data. PostGIS on the
-         back, tiled vector rendering on the front, no loading spinner longer
-         than a heartbeat.</p>
-      <p><b>Built with:</b> PostGIS, FastAPI, MapLibre<br>
-         <b>Status:</b> Live</p>` },
-    proj3: { title: 'WX-Relay', icon: 'doc', w: 430, h: 250, pane: true, body: `
-      <h4>WX-Relay — 2024</h4>
-      <p>Solar-powered weather node that reports over LoRa. Sleeps at 40 µA,
-         wakes on the quarter hour, and has not needed a battery swap since the
-         day it went up.</p>
-      <p><b>Built with:</b> ESP32, LoRa, C++<br>
-         <b>Status:</b> Archived</p>` },
-    proj4: { title: 'Untitled.prj', icon: 'doc', w: 400, h: 210, pane: true, body: `
-      <h4>Untitled — in fabrication</h4>
-      <p>Placeholder slot. Swap in whatever you're mid-way through; the desktop
-         reads better with something unfinished on it.</p>` },
+    proj1: { title: 'PrivacyLayer', icon: 'doc', w: 450, h: 290, pane: true, body: `
+      <h4>PrivacyLayer — 2026</h4>
+      <p>Self-sovereign identity. Prove you hold a degree, or that you are over 18,
+         without handing over the data behind it: credentials stay on the device,
+         the verifier learns the minimum, and there is no server-side PII to breach
+         by construction.</p>
+      <p>Issuance, selective disclosure, a Merkle transparency log for consent
+         receipts, revocation, and a Groth16 circuit that answers "over 18?" with
+         nothing but true or false. The crypto core runs on Node built-ins with
+         zero runtime dependencies.</p>
+      <p><b>Built with:</b> TypeScript, W3C VC 2.0, DID, Ed25519, Groth16, Solidity<br>
+         <b>Status:</b> Live — private repository</p>` },
+    proj2: { title: 'Unrestricted File Upload to RCE', icon: 'doc', w: 450, h: 290, pane: true, body: `
+      <h4>Unrestricted File Upload → RCE — 2026</h4>
+      <p>VAPT finding against DVWA's upload module: no extension, MIME-type or
+         magic-byte validation, on a directory sitting inside the web root. Chained
+         to remote code execution with a benign PHP shell to confirm system-level
+         command execution.</p>
+      <p>Rated Critical, and published with root cause, reproduction steps, business
+         impact and a four-part fix — extension allow-listing, magic-byte
+         verification, execution disabled in upload directories, and UUID renaming.</p>
+      <p><b>Built with:</b> DVWA, Burp Suite, PHP<br>
+         <b>Status:</b> Published —
+         <a href="https://github.com/Bladekiller246/dvwa-file-upload-Vulnerability-"
+            target="_blank" rel="noopener">on GitHub</a></p>` },
+    proj3: { title: 'SomaiyaSat · SomaiyaPod', icon: 'doc', w: 450, h: 270, pane: true, body: `
+      <h4>SomaiyaSat · SomaiyaPod — 2026</h4>
+      <p>Mission site and ground-station tooling for a 5 cm PocketQube carrying an
+         onboard AI data router and a multi-mode amateur radio payload — M17,
+         Codec2, SSTV and TT&amp;C.</p>
+      <p>Ground-station registration and a telemetry alert dashboard.</p>
+      <p><b>Built with:</b> Next.js, JavaScript<br>
+         <b>Status:</b> In build — private repository</p>` },
+    proj4: { title: 'E-Cell Research Paper', icon: 'doc', w: 430, h: 240, pane: true, body: `
+      <h4>E-Cell Impact on Engineering Campuses — 2026</h4>
+      <p>Editor on a research paper examining what Entrepreneurship Cells actually
+         do for the institutions that house them — correcting errors and pulling
+         the draft into one voice.</p>
+      <p><b>Role:</b> Editor<br>
+         <b>Status:</b> Manuscript in preparation</p>` },
 
     skills: { title: 'Device Manager', icon: 'chip', w: 400, h: 300, pane: true, body: `
       <ul class="w98tree">
         <li><b>${I.computer.replace('32" height="32', '16" height="16')} KVD-4400</b>
           <ul>
-            <li>Embedded — C, C++, ESP32, STM32, FreeRTOS</li>
-            <li>Web — TypeScript, React, Next.js, Tailwind</li>
-            <li>Data — Python, pandas, PostgreSQL, PostGIS</li>
-            <li>Radio — GNU Radio, SDR, LoRa, packet decode</li>
-            <li>Infrastructure — Docker, Linux, Git, CI</li>
-            <li>Rust — driver loading, 61% complete</li>
+            <li>Recon — Nmap, Netcat, Wireshark</li>
+            <li>Web application — Burp Suite, OWASP ZAP, DVWA</li>
+            <li>Exploitation — Metasploit, John the Ripper, Exploit-DB</li>
+            <li>Languages — Python (pandas/NumPy), C, C++, JavaScript</li>
+            <li>Databases — MS SQL Server (T-SQL), MongoDB</li>
+            <li>Infrastructure — Linux, Git, VS Code, Jupyter</li>
+            <li>Forensics — driver loading, honours coursework</li>
+            <li>Certificate — Web Designing and Development, Aptech (2018)</li>
+            <li>Certificate — Google Cybersecurity Professional, Coursera (loading, expected Dec 2026)</li>
           </ul>
         </li>
       </ul>` },
@@ -278,8 +318,8 @@
       <dl class="w98fields">
         <dt>Mail</dt><dd><a href="mailto:mannkuvadiya2006@gmail.com">mannkuvadiya2006@gmail.com</a></dd>
         <dt>GitHub</dt><dd><a href="https://github.com/Bladekiller246" target="_blank" rel="noopener">github.com/Bladekiller246</a></dd>
-        <dt>LinkedIn</dt><dd><a href="#">linkedin.com/in/…</a></dd>
-        <dt>Résumé</dt><dd><a href="#">resume.pdf</a></dd>
+        <dt>LinkedIn</dt><dd><a href="https://linkedin.com/in/mann-kuvadiya" target="_blank" rel="noopener">linkedin.com/in/mann-kuvadiya</a></dd>
+        <dt>Résumé</dt><dd><a href="Mann_Kuvadiya_Resume.pdf" target="_blank" rel="noopener">Mann_Kuvadiya_Resume.pdf</a></dd>
       </dl>` },
 
     bin: { title: 'Recycle Bin', icon: 'bin', w: 360, h: 190, body:
@@ -389,7 +429,7 @@
       </div>`,
       init: initIE },
 
-    games: { title: 'Games', icon: 'folder', w: 440, h: 230, body: `
+    games: { title: 'Games', icon: 'folder', w: 440, h: 300, body: `
       <div class="w98list">
         ${item('snake', 'Snake', 'snake')}
         ${item('mine', 'Minesweeper', 'mines')}
@@ -398,8 +438,11 @@
         ${item('gta', 'Grand Theft Auto', 'gta')}
         ${item('gta', 'Grand Theft Auto 2', 'gta2')}
         ${item('vc', 'GTA: Vice City', 'vicecity')}
+        ${item('rogue', 'PokéRogue', 'pokerogue')}
+        ${item('eclipse', 'Pokémon Eclipse RPG', 'eclipse')}
+        ${item('vortex', 'Pokémon Vortex', 'vortex')}
       </div>`,
-      status: ['7 object(s)', '  '] },
+      status: ['10 object(s)', '  '] },
 
     snake: { title: 'Snake', icon: 'snake', w: 372, h: 352, body: `
       <div class="snk">
@@ -464,13 +507,17 @@
     hide(login); hide(osboot); hide(splash); hide(w98);
     show(gate);
     kvd().burst?.(340);
-    defer(() => $('#gateAdmin').focus({ preventScroll: true }));
+    // guest is the default path, so it is what the keyboard lands on
+    defer(() => $('#gateGuest').focus({ preventScroll: true }));
   }
 
   function backToTerminal() {
     stopTimers();
+    window.JOURNAL?.sessionEnd();
     [gate, login, osboot, splash, w98].forEach(hide);
-    body.classList.remove('is-alt', 'is-win98');
+    window.OVERDRIVE?.stop();
+    stopWhine(false);
+    body.classList.remove('is-alt', 'is-win98', 'is-admin');
     hideCtx();
     kvd().restoreWarp?.();
     kvd().burst?.(380);
@@ -481,26 +528,129 @@
   document.addEventListener('kvd:gate', openGate);
   $('#gateBack').addEventListener('click', backToTerminal);
 
-  $('#gateAdmin').addEventListener('click', () => {
+  /* ── §3b · THE RESTRICTED SEGMENT ───────────────────────
+     A prop lock, and worth being plain about it: this pair lives in
+     client-side source, so anyone who opens devtools has it. It gates a
+     hidden room in a portfolio, nothing more, and nothing behind it is
+     secret — it is a door with a key under the mat, on purpose, because
+     a static site has nowhere else to put a key. */
+  const ADMIN_USER = 'Gone_Gambling';
+  const ADMIN_PASS = 'ALL_ON_RED';
+
+  /* The tone that arrives with the red. A thin high pair, detuned just
+     enough to beat against each other a few times a second — the sound
+     of a room that is listening. It sits under a lowpass so it is never
+     shrill, and it *cuts* rather than fades when the door opens, which
+     is the whole trick: silence lands harder than any sting. */
+  let whine = null;
+
+  function startWhine() {
+    const a = snd();
+    if (!a || !a.ensure() || a.muted || whine) return;
+    const ac = a.ctx;
+    const t0 = ac.currentTime;
+
+    const out = ac.createGain();
+    out.gain.setValueAtTime(0.0001, t0);
+    out.gain.exponentialRampToValueAtTime(0.05, t0 + 1.6);
+    const lp = ac.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 5200;
+    out.connect(lp); lp.connect(a.bus);
+
+    const oscs = [2870, 2876.5].map(hz => {
+      const o = ac.createOscillator();
+      o.type = 'sine'; o.frequency.value = hz;
+      o.connect(out); o.start(t0);
+      return o;
+    });
+
+    // something far below it, felt more than heard
+    const sub = ac.createOscillator();
+    const subG = ac.createGain();
+    sub.type = 'sine'; sub.frequency.value = 41;
+    subG.gain.setValueAtTime(0.0001, t0);
+    subG.gain.exponentialRampToValueAtTime(0.055, t0 + 2.4);
+    sub.connect(subG); subG.connect(a.bus); sub.start(t0);
+
+    whine = { out, subG, oscs: oscs.concat(sub) };
+  }
+
+  /* cut:true is the door opening — 25ms to nothing. Otherwise it backs
+     out the way it came in. */
+  function stopWhine(cut) {
+    if (!whine) return;
+    const a = snd();
+    /* This runs immediately before the handoff to OVERDRIVE, so it is
+       not allowed to throw: a torn-down context here would take the
+       whole submit handler with it and a correct password would appear
+       to do nothing. Drop the reference and move on. */
+    if (!a || !a.ctx) { whine = null; return; }
+    const t0 = a.ctx.currentTime;
+    const fall = cut ? 0.025 : 0.5;
+    [whine.out, whine.subG].forEach(g => {
+      g.gain.cancelScheduledValues(t0);
+      g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + fall);
+    });
+    whine.oscs.forEach(o => o.stop(t0 + fall + 0.05));
+    whine = null;
+  }
+
+  function openAdmin() {
     hide(gate); show(login);
+    body.classList.add('is-admin');
     $('#loginMsg').textContent = '';
     $('#loginMsg').classList.remove('is-deny');
     $('#luser').value = ''; $('#lpass').value = '';
+    /* A successful login disables this on the way out and has no reason
+       to put it back — the OS is taking the screen. Which means the
+       *second* visit to this door arrives at a dead button unless the
+       reset happens here, on the way in. */
+    $('#loginGo').disabled = false;
+    ensureAudio();
+    startWhine();
+    kvd().burst?.(300);
     defer(() => $('#luser').focus({ preventScroll: true }));
-  });
+  }
 
-  $('#loginCancel').addEventListener('click', () => { hide(login); show(gate); $('#gateAdmin').focus(); });
+  function leaveAdmin() {
+    body.classList.remove('is-admin');
+    stopWhine(false);
+  }
+
+  $('#gateAdmin').addEventListener('click', openAdmin);
+
+  $('#loginCancel').addEventListener('click', () => {
+    leaveAdmin();
+    hide(login); show(gate);
+    $('#gateAdmin').focus();
+  });
 
   let attempts = 0;
   $('#loginForm').addEventListener('submit', e => {
     e.preventDefault();
     const msg = $('#loginMsg');
     const go = $('#loginGo');
+    const user = $('#luser').value.trim();
+    const pass = $('#lpass').value;
+    const ok = user === ADMIN_USER && pass === ADMIN_PASS;
+
     go.disabled = true;
     msg.classList.remove('is-deny');
     msg.textContent = 'AUTHENTICATING…';
+
     setTimeout(() => {
+      if (ok) {
+        window.JOURNAL?.grant();
+        msg.textContent = 'IDENTITY CONFIRMED — welcome back, operator';
+        $('#lpass').value = '';
+        stopWhine(true);            // the room stops listening
+        kvd().burst?.(520);
+        setTimeout(startAdmin, 620);
+        return;
+      }
       attempts++;
+      window.JOURNAL?.deny();
       msg.classList.add('is-deny');
       msg.textContent = `ACCESS DENIED — credentials rejected (attempt ${attempts})`;
       $('#lpass').value = '';
@@ -509,6 +659,22 @@
       $('#lpass').focus({ preventScroll: true });
     }, 900);
   });
+
+  /* Hand the tube to the other operating system. It lives in
+     overdrive.js and owns everything from here; this only clears the
+     terminal's own furniture out of the way first. */
+  function startAdmin() {
+    stopTimers();
+    hide(gate); hide(login);
+    body.classList.remove('is-admin');
+    body.classList.add('is-alt');
+    window.OVERDRIVE?.start({
+      onExit: backToTerminal,
+      audio: snd(),
+      burst: n => kvd().burst?.(n),
+      setWarp: n => kvd().setWarpScale?.(n),
+    });
+  }
 
   $('#gateGuest').addEventListener('click', () => { ensureAudio(); startGuest(); });
 
@@ -584,6 +750,7 @@
     stopTimers();
     hide(gate); hide(login);
     body.classList.add('is-alt');
+    window.JOURNAL?.sessionStart('guest');
 
     if (calm.matches) { showSplash(); return; }
 
@@ -682,6 +849,7 @@
     taskbar.appendChild(task);
 
     open.set(id, { win, task });
+    window.JOURNAL?.enter(id, app.title);
 
     task.addEventListener('click', () => {
       if (win.hidden) { win.hidden = false; focusWin(id); }
@@ -725,6 +893,7 @@
     const rec = open.get(id);
     if (!rec) return;
     rec.win._cleanup?.();          // stop any interval the app started
+    window.JOURNAL?.leave(id, APPS[id]?.title || id);
     rec.win.remove(); rec.task.remove();
     open.delete(id);
     const last = [...open.keys()].pop();
@@ -1313,6 +1482,55 @@
       src: 'https://dos.zone/revcdos/',
       blurb: 'Rockstar North, 2002. A WebAssembly port of the rebuilt ' +
              'engine (reVC / reVCDOS), hosted by DOS Zone.' },
+
+    /* ── the fan games ──────────────────────────────────────
+       Unlike everything above, these are live third-party sites rather
+       than something emulated or ported: they run on their own servers,
+       and they can change, break or disappear without notice.
+
+       Framing checked by reading their headers, not assumed —
+       pokerogue.net and eclipserpg.com sent no X-Frame-Options and no
+       frame-ancestors policy; pokemon-vortex.com sent
+       `x-frame-options: SAMEORIGIN`, so it gets the launcher. Any of
+       them can add the header any day, which is what the launcher
+       treatment exists for.
+
+       One caveat that is nobody's bug: a game framed cross-origin is
+       in a partitioned storage bucket in current browsers, so saves
+       made in here are not the saves made on the real site, and may not
+       survive at all. Play anything you care about keeping in a real
+       window. */
+    /* Frames fine — it is the *login* that cannot survive being framed.
+       The session cookie is set in a cross-origin context, so Chrome
+       partitions it and Firefox and Safari drop it; the next request
+       goes out unauthenticated and the logged-out page comes back.
+       Measured by logging in, not assumed.
+
+       There is no fix on this side. Storage Access has to be requested
+       by the framed page itself after a gesture, and `allow=
+       "storage-access"` only grants permission to ask — the game would
+       have to call it. So: launcher, where the cookie is first-party
+       and an account works. */
+    pokerogue: { name: 'PokéRogue', icon: 'rogue', launch: true,
+      why: 'This one frames fine — the login does not. A session cookie set ' +
+           'inside another site\'s page is a third-party cookie, and the ' +
+           'browser drops it, so the game comes back logged out. It opens in ' +
+           'a real window instead, where an account works.',
+      src: 'https://pokerogue.net/',
+      blurb: 'Pagefault Games — a browser Pokémon fangame built as a ' +
+             'roguelite: endless runs, stacking items, biome to biome. ' +
+             'Open source, TypeScript, AGPL-3.0.' },
+
+    eclipse: { name: 'Pokémon Eclipse RPG', icon: 'eclipse', fluid: true,
+      src: 'https://eclipserpg.com/',
+      blurb: 'A browser RPG set in the Apholite region, against ' +
+             'ShadowCelebi. Fan-made — Pokémon belongs to Nintendo, ' +
+             'Game Freak and Creatures.' },
+
+    vortex: { name: 'Pokémon Vortex', icon: 'vortex', launch: true,
+      src: 'https://www.pokemon-vortex.com/',
+      blurb: 'A long-running browser MMO, fan-made. It allows only its ' +
+             'own site to frame it, so this one opens outward.' },
   };
 
   /* One shell for all three, built here rather than up in APPS — ARCADE
@@ -1332,9 +1550,11 @@
             <p>${g.blurb}</p>
             <button class="w98btn arc__go" data-go>${g.launch ? 'Launch' : 'Start'}</button>
             <p class="arc__note">${
-              g.launch ? 'Its host only allows itself to be framed by its own site, ' +
+              // a launcher is not always a framing refusal — `why` says which
+              g.launch ? (g.why ||
+                         'Its host only allows itself to be framed by its own site, ' +
                          'so this one opens in a new browser window. Everything else ' +
-                         'in this folder runs in place.'
+                         'in this folder runs in place.')
               : g.fluid ? 'Runs in the browser. Click inside once it loads so it gets the keyboard.'
               : 'Runs in DOSBox, streamed from the Internet Archive. Click inside once it loads so it gets the keyboard.'}</p>
           </div>
@@ -1430,11 +1650,12 @@
     'kvd.local': page('Mann Kuvadiya :: Ground Station', `
       <center>
         <h1 class="ie-h1">MANN KUVADIYA</h1>
-        <p class="ie-tag">~ ground station software &middot; embedded systems ~</p>
+        <p class="ie-tag">~ vulnerability assessment &middot; penetration testing ~</p>
         <hr class="ie-rule">
       </center>
-      <p><b>Welcome to my homepage!</b> This station tracks small satellites and
-         writes the software that talks to them. Pull up a chair.</p>
+      <p><b>Welcome to my homepage!</b> This station breaks web applications on
+         purpose, writes down exactly how, and then builds the things that don't
+         break the same way. Pull up a chair.</p>
       <table class="ie-nav">
         <tr>
           <td><a data-href="http://kvd.local/missions">Missions</a></td>
@@ -1473,10 +1694,10 @@
       <hr class="ie-rule">
       <table class="ie-table">
         <tr><th>Desig</th><th>Name</th><th>Year</th><th>Status</th></tr>
-        <tr><td>MSN-01</td><td>SomaiyaSAT Ground Station</td><td>2025</td><td>LIVE</td></tr>
-        <tr><td>MSN-02</td><td>Climate Atlas</td><td>2025</td><td>LIVE</td></tr>
-        <tr><td>MSN-03</td><td>WX-Relay</td><td>2024</td><td>ARCHIVE</td></tr>
-        <tr><td>MSN-04</td><td>Untitled</td><td>2026</td><td>BUILD</td></tr>
+        <tr><td>MSN-01</td><td>PrivacyLayer</td><td>2026</td><td>LIVE</td></tr>
+        <tr><td>MSN-02</td><td>Unrestricted File Upload &rarr; RCE</td><td>2026</td><td>LIVE</td></tr>
+        <tr><td>MSN-03</td><td>SomaiyaSat &middot; SomaiyaPod</td><td>2026</td><td>BUILD</td></tr>
+        <tr><td>MSN-04</td><td>E-Cell Research Paper</td><td>2026</td><td>BUILD</td></tr>
       </table>
       <p>Full write-ups are in the <a data-href="http://kvd.local/">Projects</a>
          folder on the desktop, or on
@@ -1486,15 +1707,17 @@
     'kvd.local/station': page('The Station', `
       <h2 class="ie-h2">About the station</h2>
       <hr class="ie-rule">
-      <p>An engineering student who got pulled into this by a radio and a
-         soldering iron, and never really left. Most of what gets built here
-         sits on the seam between a physical device and the person trying to
-         understand it &mdash; firmware on one end, a legible interface on the
-         other.</p>
+      <p>A third-year B.Tech IT student at K. J. Somaiya College of Engineering,
+         on the Honours track in Cyber Security. Most of what gets built here is
+         one loop run in both directions: take something apart until it gives,
+         then build something that doesn't.</p>
       <table class="ie-table">
         <tr><th>Based</th><td>Mumbai, IN &middot; UTC+5:30</td></tr>
-        <tr><th>Focus</th><td>Embedded &middot; RF &middot; Data interfaces</td></tr>
-        <tr><th>Learning</th><td>Rust, SDR signal chains</td></tr>
+        <tr><th>Degree</th><td>B.Tech IT, Honours in Cyber Security &middot; CGPA 8.00/10</td></tr>
+        <tr><th>Focus</th><td>VAPT &middot; Web app security &middot; Network recon</td></tr>
+        <tr><th>Learning</th><td>Digital forensics, Google Cybersecurity certificate</td></tr>
+        <tr><th>Certificates</th><td>Web Designing and Development, Aptech (2018) &middot;
+            Google Cybersecurity Professional, Coursera (expected Dec 2026)</td></tr>
         <tr><th>Status</th><td>Open to internships</td></tr>
       </table>
       <p><a data-href="http://kvd.local/">&laquo; Back to the index</a></p>`),
@@ -1506,6 +1729,7 @@
       <table class="ie-table">
         <tr><th>Mail</th><td><a data-href="mailto:mannkuvadiya2006@gmail.com">mannkuvadiya2006@gmail.com</a></td></tr>
         <tr><th>GitHub</th><td><a data-href="https://github.com/Bladekiller246">github.com/Bladekiller246</a></td></tr>
+        <tr><th>LinkedIn</th><td><a data-href="https://linkedin.com/in/mann-kuvadiya">linkedin.com/in/mann-kuvadiya</a></td></tr>
       </table>
       <p><a data-href="http://kvd.local/">&laquo; Back to the index</a></p>`),
 
@@ -1999,6 +2223,7 @@
         at = hist.length - 1;
       }
       urlIn.value = u;
+      window.JOURNAL?.seek(u, isLocal(u));
       note = '';
       titled = false;
       zone.textContent = 'Internet zone';
@@ -2195,55 +2420,81 @@
     'ABOUT.TXT': ABOUT_TEXT,
 
     'SKILLS.TXT': [
-      'EMBEDDED ...... C, C++, ESP32, STM32, FreeRTOS',
-      'WEB ........... TypeScript, React, Next.js, Tailwind',
-      'DATA .......... Python, pandas, PostgreSQL, PostGIS',
-      'RADIO ......... GNU Radio, SDR, LoRa, packet decode',
-      'INFRA ......... Docker, Linux, Git, CI pipelines',
-      'RUST .......... loading, 61% complete',
+      'RECON ......... Nmap, Netcat, Wireshark',
+      'WEB APP ....... Burp Suite, OWASP ZAP, DVWA',
+      'EXPLOIT ....... Metasploit, John the Ripper, Exploit-DB',
+      'LANGUAGES ..... Python (pandas/NumPy), C, C++, JavaScript',
+      'DATABASES ..... MS SQL Server (T-SQL), MongoDB',
+      'INFRA ......... Linux, Git, VS Code, Jupyter',
+      'FORENSICS ..... loading, honours coursework',
+      '',
+      'CERTIFICATES',
+      '  Web Designing and Development, Aptech ......... 2018',
+      '  Google Cybersecurity Professional, Coursera ... expected Dec 2026',
     ].join('\n'),
 
     'CONTACT.TXT': [
       'MAIL ........ mannkuvadiya2006@gmail.com',
-      'GITHUB ...... github.com/...',
-      'LINKEDIN .... linkedin.com/in/...',
-      'RESUME ...... resume.pdf',
+      'GITHUB ...... github.com/Bladekiller246',
+      'LINKEDIN .... linkedin.com/in/mann-kuvadiya',
+      'RESUME ...... Mann_Kuvadiya_Resume.pdf',
       '',
       'Mail gets the fastest reply.',
     ].join('\n'),
 
     PROJECTS: {
+      'PRIVACY.TXT': [
+        'MSN-01  PrivacyLayer  (2026, LIVE)',
+        '',
+        'Self-sovereign identity. Prove you hold a degree, or that you are',
+        'over 18, without handing over the data behind it: credentials stay',
+        'on the device, the verifier learns the minimum, and there is no',
+        'server-side PII to breach by construction.',
+        '',
+        'Issuance, selective disclosure, a Merkle transparency log for',
+        'consent receipts, revocation, and a Groth16 circuit that answers',
+        '"over 18?" with nothing but true or false. The crypto core runs on',
+        'Node built-ins with zero runtime dependencies.',
+        '',
+        'Built with: TypeScript, W3C VC 2.0, DID, Ed25519, Groth16, Solidity',
+        'Status: private repository',
+      ].join('\n'),
+      'DVWA.TXT': [
+        'MSN-02  Unrestricted File Upload -> RCE  (2026, LIVE)',
+        '',
+        "VAPT finding against DVWA's upload module: no extension, MIME-type",
+        'or magic-byte validation, on a directory sitting inside the web',
+        'root. Chained to remote code execution with a benign PHP shell to',
+        'confirm system-level command execution.',
+        '',
+        'Rated Critical, and published with root cause, reproduction steps,',
+        'business impact and a four-part fix - extension allow-listing,',
+        'magic-byte verification, execution disabled in upload directories,',
+        'and UUID renaming.',
+        '',
+        'Built with: DVWA, Burp Suite, PHP',
+        'Status: github.com/Bladekiller246/dvwa-file-upload-Vulnerability-',
+      ].join('\n'),
       'SOMAIYA.TXT': [
-        'MSN-01  SomaiyaSAT Ground Station  (2025, LIVE)',
+        'MSN-03  SomaiyaSat / SomaiyaPod  (2026, BUILD)',
         '',
-        'Web console for a student CubeSat program: live pass prediction,',
-        'decoded telemetry, and a command queue that survives a dropped link.',
+        'Mission site and ground-station tooling for a 5 cm PocketQube',
+        'carrying an onboard AI data router and a multi-mode amateur radio',
+        'payload - M17, Codec2, SSTV and TT&C. Ground-station registration',
+        'and a telemetry alert dashboard.',
         '',
-        'Built with: Next.js, Python, WebSocket, SGP4',
+        'Built with: Next.js, JavaScript',
+        'Status: private repository',
       ].join('\n'),
-      'ATLAS.TXT': [
-        'MSN-02  Climate Atlas  (2025, LIVE)',
+      'ECELL.TXT': [
+        'MSN-04  E-Cell Impact on Engineering Campuses  (2026, BUILD)',
         '',
-        'Geospatial dashboard over four decades of station data. PostGIS on',
-        'the back, tiled vector rendering on the front, no loading spinner',
-        'longer than a heartbeat.',
+        'Editor on a research paper examining what Entrepreneurship Cells',
+        'actually do for the institutions that house them - correcting',
+        'errors and pulling the draft into one voice.',
         '',
-        'Built with: PostGIS, FastAPI, MapLibre',
-      ].join('\n'),
-      'WXRELAY.TXT': [
-        'MSN-03  WX-Relay  (2024, ARCHIVE)',
-        '',
-        'Solar-powered weather node that reports over LoRa. Sleeps at 40 uA,',
-        'wakes on the quarter hour, and has not needed a battery swap since',
-        'the day it went up.',
-        '',
-        'Built with: ESP32, LoRa, C++',
-      ].join('\n'),
-      'UNTITLED.TXT': [
-        'MSN-04  Untitled  (2026, BUILD)',
-        '',
-        'Placeholder slot. Swap in whatever is mid-way through; the volume',
-        'reads better with something unfinished on it.',
+        'Role: Editor',
+        'Status: manuscript in preparation',
       ].join('\n'),
     },
   };
@@ -2673,7 +2924,14 @@
       if (top) closeApp(top[0]);
       return;
     }
-    if (!login.hidden) { hide(login); show(gate); $('#gateAdmin').focus(); return; }
+    // same retreat as CANCEL, so it has to undo the same things —
+    // escaping out used to leave the room red and still humming
+    if (!login.hidden) {
+      leaveAdmin();
+      hide(login); show(gate);
+      $('#gateAdmin').focus();
+      return;
+    }
     if (!gate.hidden) backToTerminal();
   });
 })();

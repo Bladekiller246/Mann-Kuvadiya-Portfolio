@@ -26,9 +26,9 @@ Open `index.html` directly, or serve it:
 python -m http.server 8000
 ```
 
-## Replace the placeholders
+## Editing the content
 
-Search `index.html` for `✎` — that marks every line written to be swapped:
+The copy is real and current. Search `index.html` for `✎` to find each block:
 
 - **CH1 SIGNAL** — the one-line thesis and the supporting sentence
 - **CH2 ID** — the two bio paragraphs and the four spec rows
@@ -37,8 +37,25 @@ Search `index.html` for `✎` — that marks every line written to be swapped:
   `is-live`, `is-arch`, or `is-build`. These are the fallback once repos are
   tagged — see [The live manifest](#the-live-manifest).
 - **CH4 SYS** — the module list. `[ OK ]` uses `.mod__ok`, `[LOAD]` uses `.mod__warn`.
-- **CH5 COMMS** — the four links. Mail is already yours; GitHub, LinkedIn and
-  resume are `#` stubs. The riddle pool below them is in `crt.js` §11b.
+- **CH5 COMMS** — mail, GitHub and LinkedIn are live. **RESUME points at
+  `Mann_Kuvadiya_Resume.pdf` in the repo root, which is not committed yet** —
+  the link is dead until that file is there. The riddle pool is in `crt.js` §11b.
+
+**The same four projects live in five places**, and none of them read from each
+other — edit all five or they drift:
+
+| Where | What |
+|---|---|
+| `index.html` CH3 | The dossier cards |
+| `win98.js` §2 `projects` + `proj1`–`proj4` | Projects folder and its windows |
+| `win98.js` §6c2 `SITES` | `kvd.local/missions`, the table |
+| `win98.js` §6d `DOS_FS.PROJECTS` | `PRIVACY.TXT`, `DVWA.TXT`, `SOMAIYA.TXT`, `ECELL.TXT` |
+| `win98.js` §2 `skills` + `DOS_FS.SKILLS.TXT` | Device Manager and the skills file |
+
+`PrivacyLayer` and `SomaiyaSat · SomaiyaPod` are **private repositories**, so
+their cards carry no link and say so. Only the DVWA finding is public and
+linked. Tag a repo `portfolio` on GitHub and the live manifest replaces CH3
+entirely — private repos will not appear there, which is the correct behaviour.
 
 The live telemetry (signal %, packet count, elevation, RX rate, spectrum trace)
 is decorative — generated in `crt.js` §9–10. It reads as a console at idle; it
@@ -298,7 +315,7 @@ they appeared. At 45 the curve still reads and the pointer stays honest.
 | **Calendar** | Date/Time Properties: month dropdown, year field, working grid with today outlined, a live clock, and a Today button. Also opens on a **double-click of the tray clock**, same as the real shell. |
 | **MS-DOS Prompt** | A working shell over a virtual `A:\PORTFOLIO`. `HELP` lists the commands; `DIR`, `CD`, `TYPE`, `TREE`, `CLS`, `ECHO`, `VER`, `DATE`, `TIME`, `MEM`, `START`, `EXIT` all do what they say. `↑`/`↓` walk the history. Typing a filename alone prints it. |
 | **Calculator** | Standard view, working. Full keyboard: digits, `+ - * /`, `Enter`/`=`, `Backspace`, `Delete` (CE), `Esc` (C). Divide by zero says so. |
-| **Games** | A folder on the desktop: Snake, Minesweeper, DOOM, DOOM II and Grand Theft Auto. See [The arcade](#the-arcade). |
+| **Games** | A folder on the desktop: Snake, Minesweeper, DOOM, DOOM II, three Grand Theft Autos, and three browser fan games. See [The arcade](#the-arcade). |
 | **Snake** | Written here, not embedded. 24×18 grid on a canvas, arrows or WASD, `P` pauses, speed climbs with every apple, best score kept in `localStorage`. Turns are queued so a fast corner isn't eaten by the tick. |
 | **Minesweeper** | 9x9, 10 mines. Left-click reveals, right-click flags, the face resets. First click is always safe. |
 | **Notepad** | The About window is a real editable textarea. Nothing is saved. |
@@ -333,8 +350,38 @@ pressed**, so opening the folder doesn't spin up three emulators.
 | flag | how it runs | used by |
 |---|---|---|
 | *(none)* | fixed 800x600 iframe, `transform: scale()` to fit | DOOM, DOOM II, GTA |
-| `fluid` | fills the window, no scaling | GTA 2 |
-| `launch` | opens in a real browser window | GTA: Vice City |
+| `fluid` | fills the window, no scaling | GTA 2, Pokémon Eclipse RPG |
+| `launch` | opens in a real browser window | GTA: Vice City, Pokémon Vortex, PokéRogue |
+
+A `launch` entry may also carry `why`, which replaces the start card's
+explanation. The default text says the host refuses framing — true for Vice
+City and Vortex, and wrong for PokéRogue, which frames perfectly well and
+fails for a different reason.
+
+**The three fan games are different in kind** from everything else in the
+folder. DOOM and GTA are emulated or ported binaries; PokéRogue, Eclipse RPG
+and Vortex are *live third-party sites* running on their own servers, which
+can change, break or vanish without notice.
+
+Which of them frames was measured, not assumed — `pokerogue.net` and
+`eclipserpg.com` send no `X-Frame-Options` and no `frame-ancestors`;
+`pokemon-vortex.com` sends `x-frame-options: SAMEORIGIN`, so it gets the
+launcher. Any of them can add the header on any given day, which is what the
+launcher path exists for.
+
+**Framing is not the only thing that breaks.** PokéRogue frames perfectly and
+still had to become a launcher: logging in inside a frame sets the session
+cookie in a cross-origin context, so Chrome partitions it and Firefox and
+Safari drop it, and the next request comes back logged out. There is no fix on
+the embedder's side — the Storage Access API has to be called by the framed
+page itself after a gesture, and `allow="storage-access"` only grants
+permission to ask. **Any game with an account will hit this**, so a login
+screen that keeps reappearing is the expected result of framing, not a bug.
+
+One caveat that is nobody's bug: a game framed cross-origin gets a
+**partitioned storage bucket** in current browsers, so saves made in the tube
+are not the saves made on the real site, and may not survive at all. Anything
+worth keeping should be played in a real window.
 
 **Why the scaling exists.** The Internet Archive's emulator measures the iframe
 once at load and lays its canvas out against that, then never reflows. Maximising

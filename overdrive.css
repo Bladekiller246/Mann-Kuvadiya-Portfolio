@@ -1,0 +1,332 @@
+/* ═══════════════════════════════════════════════════════════
+   KVD//OVERDRIVE — the restricted segment
+   The second operating system. Where the Windows 98 shell is a
+   reproduction, this one is invented: it is what the machine runs when
+   the operator is the one sitting down.
+
+   §1 palette   §2 boot      §3 chrome
+   §4 rail      §5 panels    §6 ticker
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══ 1 · PALETTE ════════════════════════════════════════
+   Two references, pulled apart for what each does well.
+
+   Blade Runner 2049 gives the restraint: enormous empty margins, one
+   hot light in a dark room, type set huge and thin and far apart, and
+   an amber that reads as *dust* rather than as neon.
+
+   Cyberpunk 2077 gives the density: hazard yellow, clipped corners,
+   panels that look stamped out of sheet metal, and a willingness to
+   put a warning stripe on something that is not dangerous.
+
+   Held together by using the yellow sparingly. It is the only fully
+   saturated thing on screen, so it means something wherever it lands. */
+.od{
+  /* Hazard yellow and cyan were the wrong read — that is a UI that
+     wants to be *used*, clean and corporate and helpful. This one
+     should feel like it does not want you here.
+
+     So: no cold accent at all. Near-black with a red bias rather than
+     a blue one, one blood red doing all the pointing, an ember orange
+     under it, and bone for text. Nothing on screen is comfortable and
+     nothing is fully lit. A palette with no cool colour in it reads as
+     a room with no exit — which is the point. */
+  --od-void:   #050306;
+  --od-panel:  #0b0709;
+  --od-line:   #291a1e;
+  --od-ink:    #cdc2bb;     /* bone, not white — nothing here is clean */
+  --od-dim:    #6d5c5b;
+  --od-hot:    #ff1f3d;     /* the only saturated thing on screen */
+  --od-hot-d:  255 31 61;
+  --od-cool:   #ff6a2b;     /* ember, where cyan used to be */
+  --od-cool-d: 255 106 43;
+  --od-warn:   #ff1f3d;
+  --od-amber:  #ff8a3d;
+
+  position:absolute; inset:0; z-index:5;
+  background:var(--od-void);
+  color:var(--od-ink);
+  font-family:var(--body);
+  overflow:hidden;
+  container-type:inline-size;
+}
+.od[hidden]{ display:none; }
+
+/* the grid the whole thing sits on — dense, dim, and never in focus */
+.od::before{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgb(var(--od-cool-d) / .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--od-cool-d) / .045) 1px, transparent 1px);
+  background-size:38px 38px, 38px 38px;
+  mask-image:radial-gradient(120% 90% at 50% 40%, #000 30%, transparent 82%);
+}
+
+/* Something in the room with you. One low red source that never gets
+   bright enough to see by, breathing about as fast as someone asleep —
+   slow enough that you notice it only after you have stopped looking
+   for it. This is the whole rogue-AI trick: not a face, just the sense
+   that the light is coming from something rather than somewhere. */
+.od::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(64% 50% at 14% 6%, rgb(var(--od-hot-d) / .085), transparent 72%),
+    radial-gradient(80% 60% at 88% 98%, rgb(var(--od-cool-d) / .05), transparent 76%),
+    radial-gradient(120% 90% at 50% 50%, transparent 46%, rgb(0 0 0 / .55) 100%);
+  animation:odBreathe 9s ease-in-out infinite;
+}
+@keyframes odBreathe{ 0%,100%{ opacity:.82; } 50%{ opacity:1; } }
+@media (prefers-reduced-motion:reduce){ .od::after{ animation:none; } }
+
+
+/* The tube's overlays are eased right back here for the same reason
+   they are under Windows: this shell is nothing but small, tightly
+   letter-spaced type, and the scanlines will eat it. The vignette
+   stays heavier than the Windows setting — the room should still feel
+   like it is closing in. */
+body.is-overdrive .fx--scan{ opacity:.3; }
+body.is-overdrive .fx--bloom{ opacity:.35; }
+body.is-overdrive .fx--vig{ opacity:.8; }
+body.is-overdrive .fx--grille{ opacity:0; }
+
+
+/* ═══ 2 · BOOT ═══════════════════════════════════════════ */
+
+.od__boot{
+  position:absolute; inset:0; z-index:3;
+  padding:
+    calc(var(--warp-y) + clamp(.8rem,2.4vmin,2rem))
+    calc(var(--warp-x) + clamp(.8rem,2.4vmin,2rem));
+  font-size:clamp(.6rem,1.5vmin,.82rem); line-height:1.85;
+  color:var(--od-dim);
+  overflow:hidden;
+}
+.od__boot[hidden]{ display:none; }
+.od__boot pre{ margin:0; font-family:inherit; white-space:pre-wrap; }
+.od__boot b{ color:var(--od-hot); font-weight:400; }
+.od__boot i{ color:var(--od-warn); font-style:normal; }
+.od__boot u{ color:var(--od-cool); text-decoration:none; }
+
+
+/* ═══ 3 · CHROME ═════════════════════════════════════════ */
+
+/* The tube is a bowed rectangle, not a rectangle. crt.js measures the
+   largest flat area that actually fits inside the bend and publishes it
+   as --warp-x / --warp-y on #glass; .scroll has always respected it and
+   this shell did not, which is why the rail, the clock and both ends of
+   the ticker were sliding under the curve.
+
+   Padding, not inset, so the background still runs edge to edge — the
+   dark should reach the glass even though the type must not. */
+.od__shell{
+  position:absolute; inset:0; z-index:2;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:clamp(.4rem,1.1vmin,.9rem);
+  padding:
+    calc(var(--warp-y) + clamp(.3rem,.9vmin,.7rem))
+    calc(var(--warp-x) + clamp(.3rem,.9vmin,.7rem));
+}
+.od__shell[hidden]{ display:none; }
+
+.od__bar{
+  display:flex; align-items:center; gap:clamp(.5rem,1.6vmin,1.4rem);
+  padding-bottom:clamp(.35rem,.9vmin,.7rem);
+  border-bottom:1px solid var(--od-line);
+  font-size:clamp(.48rem,1.05vmin,.62rem);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--od-dim);
+  flex-wrap:wrap;
+}
+.od__mark{
+  color:var(--od-ink); letter-spacing:.3em;
+  border-left:2px solid var(--od-hot); padding-left:.6em;
+}
+.od__mark b{ color:var(--od-hot); font-weight:400; }
+.od__bar time{ margin-left:auto; font-variant-numeric:tabular-nums; color:var(--od-ink); }
+
+/* status pills — the CP2077 habit of labelling everything */
+.od__pill{
+  padding:.18em .6em; border:1px solid var(--od-line);
+  color:var(--od-dim); white-space:nowrap;
+}
+.od__pill--live{ border-color:rgb(var(--od-cool-d) / .5); color:var(--od-cool); }
+.od__pill--warn{ border-color:rgb(255 47 74 / .5); color:var(--od-warn); }
+
+
+/* ═══ 4 · RAIL ═══════════════════════════════════════════ */
+
+.od__body{
+  display:grid; grid-template-columns:minmax(9rem,15rem) 1fr;
+  gap:clamp(.5rem,1.6vmin,1.2rem); min-height:0;
+}
+@container (max-width:640px){
+  .od__body{ grid-template-columns:1fr; grid-template-rows:auto 1fr; }
+  .od__rail{ display:flex; overflow-x:auto; }
+}
+
+.od__rail{
+  display:flex; flex-direction:column; gap:2px; min-height:0;
+  overflow:auto;
+}
+
+/* Angular by subtraction: the corner is cut off the button rather than
+   rounded onto it. One clip-path, and the whole UI stops looking like
+   a web page. */
+.od__tab{
+  display:grid; grid-template-columns:auto 1fr; align-items:center; gap:.7em;
+  padding:clamp(.5rem,1.2vmin,.85rem) clamp(.6rem,1.4vmin,1rem);
+  border:0; cursor:pointer; text-align:left;
+  background:var(--od-panel); color:var(--od-dim);
+  font-family:inherit; font-size:clamp(.5rem,1.1vmin,.66rem);
+  letter-spacing:.2em; text-transform:uppercase;
+  clip-path:polygon(0 0, calc(100% - .7em) 0, 100% .7em, 100% 100%, .7em 100%, 0 calc(100% - .7em));
+  transition:color .16s ease, background .16s ease;
+  white-space:nowrap;
+}
+.od__tab span{ overflow:hidden; text-overflow:ellipsis; }
+.od__tab i{
+  font-style:normal; color:var(--od-line);
+  font-variant-numeric:tabular-nums; font-size:.9em;
+}
+.od__tab:hover{ color:var(--od-ink); background:#11141b; }
+.od__tab:hover i{ color:var(--od-dim); }
+
+.od__tab.is-on{
+  background:linear-gradient(90deg, rgb(var(--od-hot-d) / .16), transparent 70%);
+  color:var(--od-hot);
+}
+.od__tab.is-on i{ color:var(--od-hot); }
+
+/* the selected rail item grows a spine, the way a HUD marks a lock */
+.od__tab.is-on::before{
+  content:""; position:absolute; left:0; width:2px; height:100%;
+  background:var(--od-hot);
+  box-shadow:0 0 12px rgb(var(--od-hot-d) / .7);
+}
+.od__tab{ position:relative; }
+
+.od__eject{
+  margin-top:auto; color:var(--od-warn);
+  background:transparent; border:1px solid rgb(255 47 74 / .35);
+  clip-path:none;
+}
+.od__eject:hover{ background:rgb(255 47 74 / .1); color:var(--od-warn); }
+
+
+/* ═══ 5 · PANELS ═════════════════════════════════════════ */
+
+.od__stage{ position:relative; min-height:0; overflow:hidden; }
+
+.od__panel{
+  position:absolute; inset:0; overflow:auto;
+  padding:clamp(.9rem,2.6vmin,2.2rem);
+  background:
+    linear-gradient(180deg, rgb(var(--od-cool-d) / .022), transparent 40%),
+    var(--od-panel);
+  clip-path:polygon(0 0, calc(100% - 1.4em) 0, 100% 1.4em, 100% 100%, 1.4em 100%, 0 calc(100% - 1.4em));
+  animation:odIn .34s cubic-bezier(.2,.7,.3,1) both;
+}
+.od__panel[hidden]{ display:none; }
+@keyframes odIn{
+  from{ opacity:0; transform:translateY(8px); clip-path:inset(0 0 100% 0); }
+  to  { opacity:1; transform:none; }
+}
+
+/* The 2049 move: a headline set far larger than anything needs to be,
+   with the explanation whispered underneath it. */
+.od__h{
+  position:relative;
+  margin:0 0 .2em; font-family:var(--disp); font-weight:400;
+  font-size:clamp(1.6rem,6.5vmin,3.6rem); line-height:.94;
+  letter-spacing:.02em; color:var(--od-ink);
+  text-transform:uppercase;
+  animation:odGlitch 11s steps(1) infinite;
+}
+
+/* Idle for ten and a half seconds out of eleven, then the headline
+   tears for about a fifth of a second and settles. Rare is the whole
+   point — a constant glitch is a screensaver and stops meaning
+   anything. This one reads as something else briefly having its hands
+   on the output. */
+@keyframes odGlitch{
+  0%, 95%, 100%{ transform:none; text-shadow:none; opacity:1; }
+  95.6%{ transform:translateX(-3px) skewX(.6deg);
+         text-shadow:3px 0 rgb(var(--od-hot-d) / .9), -2px 0 rgb(var(--od-cool-d) / .6); }
+  96.4%{ transform:translateX(4px);
+         text-shadow:-4px 0 rgb(var(--od-hot-d) / .75); opacity:.82; }
+  97.2%{ transform:translateX(-1px);
+         text-shadow:2px 0 rgb(var(--od-cool-d) / .5); }
+  98%  { transform:none; text-shadow:none; opacity:.9; }
+}
+.od__h b{ color:var(--od-hot); font-weight:400; }
+.od__sub{
+  margin:0 0 clamp(1rem,3vmin,2.2rem);
+  font-size:clamp(.5rem,1.15vmin,.68rem); letter-spacing:.3em;
+  text-transform:uppercase; color:var(--od-dim);
+}
+
+.od__panel p{ max-width:62ch; margin:0 0 1rem; color:var(--od-ink); font-size:.86rem; line-height:1.8; }
+.od__panel p.od__note{ color:var(--od-dim); font-size:.76rem; }
+
+/* a rule that means something: hazard stripes, not a border */
+.od__rule{
+  height:6px; margin:clamp(1rem,3vmin,2rem) 0; border:0;
+  background:repeating-linear-gradient(115deg,
+    rgb(var(--od-hot-d) / .55) 0 8px, transparent 8px 18px);
+}
+
+/* readout grid — the dense half of the influence */
+.od__grid{
+  display:grid; gap:1px; background:var(--od-line);
+  grid-template-columns:repeat(auto-fit,minmax(min(11rem,100%),1fr));
+  margin:0 0 clamp(1rem,3vmin,2rem);
+}
+.od__cell{ background:var(--od-panel); padding:clamp(.7rem,1.8vmin,1.1rem); }
+.od__cell dt{
+  font-size:clamp(.44rem,.95vmin,.56rem); letter-spacing:.26em;
+  text-transform:uppercase; color:var(--od-dim); margin-bottom:.6em;
+}
+.od__cell dd{
+  margin:0; font-family:var(--disp); font-size:clamp(1rem,3.2vmin,1.7rem);
+  line-height:1; color:var(--od-ink); font-variant-numeric:tabular-nums;
+}
+.od__cell dd small{ font-size:.5em; color:var(--od-dim); letter-spacing:.1em; }
+.od__cell--hot dd{ color:var(--od-hot); }
+.od__cell--cool dd{ color:var(--od-cool); }
+
+/* a list that reads as a manifest rather than bullets */
+.od__list{ list-style:none; margin:0; padding:0; }
+.od__list li{
+  display:grid; grid-template-columns:auto 1fr auto; gap:1em; align-items:baseline;
+  padding:.75em 0; border-bottom:1px solid var(--od-line);
+  font-size:.8rem;
+}
+.od__list b{ color:var(--od-hot); font-weight:400; font-variant-numeric:tabular-nums; }
+.od__list em{ font-style:normal; color:var(--od-dim); font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; }
+
+.od__locked{
+  display:inline-block; padding:.2em .7em; margin-top:.4em;
+  border:1px solid rgb(255 47 74 / .4); color:var(--od-warn);
+  font-size:.56rem; letter-spacing:.26em; text-transform:uppercase;
+}
+
+
+/* ═══ 6 · TICKER ═════════════════════════════════════════ */
+
+.od__ticker{
+  border-top:1px solid var(--od-line);
+  padding-top:clamp(.35rem,.9vmin,.7rem);
+  font-size:clamp(.46rem,1vmin,.58rem); letter-spacing:.26em;
+  text-transform:uppercase; color:var(--od-dim);
+  white-space:nowrap; overflow:hidden;
+}
+.od__ticker span{ display:inline-block; padding-left:100%; animation:odTick 38s linear infinite; }
+@keyframes odTick{ to{ transform:translateX(-100%); } }
+.od__ticker b{ color:var(--od-amber); font-weight:400; }
+
+@media (prefers-reduced-motion:reduce){
+  .od__ticker span{ animation:none; padding-left:0; }
+  .od__panel{ animation:none; }
+  .od__h{ animation:none; }
+}
