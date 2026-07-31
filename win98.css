@@ -864,7 +864,11 @@ body.is-win98 .fx--grille{ opacity:.5; }
 /* ═══ 21 · THE ARCADE ════════════════════════════════════ */
 
 .arc{ height:100%; background:#000; display:flex; }
-.arc__frame{ flex:1; width:100%; height:100%; border:0; display:block; }
+/* the frame is a fixed logical size scaled to fit, so it centres here */
+.arc__stage{ flex:1; min-width:0; display:grid; place-items:center; overflow:hidden; }
+.arc__frame{ border:0; display:block; transform-origin:center center; }
+/* a game that reflows on its own gets the whole stage, unscaled */
+.arc__frame--fluid{ width:100%; height:100%; transform:none; }
 .arc__start{
   margin:auto; padding:26px 30px; max-width:34ch; text-align:center;
   color:#d8d8d8;

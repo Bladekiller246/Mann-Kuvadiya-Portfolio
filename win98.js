@@ -153,6 +153,13 @@
       <circle cx="12.5" cy="19" r="2" fill="#5aff5a"/><circle cx="19.5" cy="19" r="2" fill="#5aff5a"/>
       <path d="M11 25h10v2H11z" fill="#360f48"/>`),
 
+    vc: svg(`<rect x="3" y="3" width="26" height="26" fill="#140b26" stroke="#000"/>
+      <circle cx="19" cy="17" r="8" fill="#ff4f9a"/>
+      <g fill="#140b26"><rect x="11" y="14" width="17" height="1.5"/>
+      <rect x="11" y="17.5" width="17" height="1.5"/><rect x="11" y="21" width="17" height="1.5"/></g>
+      <rect x="8" y="14" width="1.8" height="13" fill="#0a0518"/>
+      <path d="M8.9 14.5c-2.4-2-4.6-1.6-6 .4 1.8-.9 3.6-.7 6 1zM8.9 14.5c2.4-2 4.6-1.6 6 .4-1.8-.9-3.6-.7-6 1z" fill="#0a0518"/>`),
+
     gta: svg(`<rect x="3" y="3" width="26" height="26" fill="#3c3c3c" stroke="#000"/>
       <g fill="#e8d44a" opacity=".45"><rect x="15" y="4" width="2" height="5"/>
       <rect x="15" y="13" width="2" height="5"/><rect x="15" y="22" width="2" height="5"/></g>
@@ -388,8 +395,9 @@
         ${item('doom2', 'DOOM II', 'doom2')}
         ${item('gta', 'Grand Theft Auto', 'gta')}
         ${item('gta', 'Grand Theft Auto 2', 'gta2')}
+        ${item('vc', 'GTA: Vice City', 'vicecity')}
       </div>`,
-      status: ['6 object(s)', '  '] },
+      status: ['7 object(s)', '  '] },
 
     snake: { title: 'Snake', icon: 'snake', w: 372, h: 352, body: `
       <div class="snk">
@@ -821,6 +829,8 @@
     snake: 'snake', games: 'games', doom: 'doom', doom2: 'doom2',
     'doom ii': 'doom2', gta: 'gta', 'grand theft auto': 'gta',
     gta2: 'gta2', 'gta 2': 'gta2', 'grand theft auto 2': 'gta2',
+    vc: 'vicecity', vicecity: 'vicecity', 'vice city': 'vicecity',
+    'gta vice city': 'vicecity',
     control: 'display', 'control panel': 'display', display: 'display',
     devmgr: 'skills', 'device manager': 'skills',
     mail: 'contact', contact: 'contact',
@@ -1262,86 +1272,133 @@
      DirectX title: DOSBox cannot run it and no in-browser build of it
      exists, which is a technical wall rather than a licensing one. */
 
+  const ARCHIVE = id => 'https://archive.org/embed/' + id;
+
   const ARCADE = {
-    doom:  ['DOOM', 'doom', 'DoomsharewareEpisode',
-            'id Software, 1993 — Episode 1, Knee-Deep in the Dead.'],
-    doom2: ['DOOM II', 'doom2', 'doomII',
-            'id Software, 1994 — Hell on Earth.'],
-    gta:   ['Grand Theft Auto', 'gta', 'grand-theft-auto-1997-dma-design',
-            'DMA Design, 1997 — the original top-down one.'],
+    doom: { name: 'DOOM', icon: 'doom', src: ARCHIVE('DoomsharewareEpisode'),
+      blurb: 'id Software, 1993 — Episode 1, Knee-Deep in the Dead.' },
+
+    doom2: { name: 'DOOM II', icon: 'doom2', src: ARCHIVE('doomII'),
+      blurb: 'id Software, 1994 — Hell on Earth.' },
+
+    gta: { name: 'Grand Theft Auto', icon: 'gta',
+      src: ARCHIVE('grand-theft-auto-1997-dma-design'),
+      blurb: 'DMA Design, 1997 — the original top-down one.' },
+
+    /* Not DOSBox. A JavaScript port of the engine, which reflows to
+       whatever size you give it — so it is marked fluid and fills the
+       window instead of being scaled like the emulated three. */
+    gta2: { name: 'Grand Theft Auto 2', icon: 'gta', fluid: true,
+      src: 'https://gta2js.vercel.app/',
+      blurb: 'Rockstar North, 1999. A JS port of the engine ' +
+             '(h0x91b/gta2-resurection), running on the data from the ' +
+             'official free release — not emulated, rebuilt.' },
+
+    /* The one that has to open outward. reVCDOS is a real WebAssembly
+       port and it genuinely runs, but the only public build is on
+       dos.zone, whose CSP names the hosts allowed to frame it and this
+       is not one of them:
+
+         frame-ancestors https://dos.zone https://cdn.dos.zone
+                         http://br.cdn.dos.zone https://sec.dos.zone
+                         https://test.js-dos.com https://*.discord.com
+
+       Self-hosting is the documented alternative, but that means
+       carrying Vice City's asset bundle — past GitHub's 100 MB file
+       ceiling and Pages' 1 GB budget. So: launcher. Flip `launch` off
+       the day a framable build exists and it moves in-window. */
+    vicecity: { name: 'GTA: Vice City', icon: 'vc', launch: true,
+      src: 'https://dos.zone/revcdos/',
+      blurb: 'Rockstar North, 2002. A WebAssembly port of the rebuilt ' +
+             'engine (reVC / reVCDOS), hosted by DOS Zone.' },
   };
 
   /* One shell for all three, built here rather than up in APPS — ARCADE
      is a const declared in this section, and the loop has to run after
      it exists, not before. */
   Object.keys(ARCADE).forEach(id => {
-    const [name, icon, archiveId, blurb] = ARCADE[id];
+    const g = ARCADE[id];
     APPS[id] = {
-      title: name, icon, w: 680, h: 500, flush: true,
+      title: g.name, icon: g.icon,
+      w: g.launch ? 470 : 680, h: g.launch ? 344 : 500, flush: true,
       body: `
-        <div class="arc" data-arc="${archiveId}">
+        <div class="arc" data-arc="${esc(g.src)}"${g.fluid ? ' data-fluid' : ''}${
+          g.launch ? ' data-launch' : ''}>
           <div class="arc__start">
-            ${I[icon].replace('width="32" height="32"', 'width="52" height="52"')}
-            <h3>${name}</h3>
-            <p>${blurb}</p>
-            <button class="w98btn arc__go" data-go>Start</button>
-            <p class="arc__note">Runs in DOSBox, streamed from the Internet
-               Archive. Click inside once it loads so it gets the keyboard.</p>
+            ${I[g.icon].replace('width="32" height="32"', 'width="52" height="52"')}
+            <h3>${g.name}</h3>
+            <p>${g.blurb}</p>
+            <button class="w98btn arc__go" data-go>${g.launch ? 'Launch' : 'Start'}</button>
+            <p class="arc__note">${
+              g.launch ? 'Its host only allows itself to be framed by its own site, ' +
+                         'so this one opens in a new browser window. Everything else ' +
+                         'in this folder runs in place.'
+              : g.fluid ? 'Runs in the browser. Click inside once it loads so it gets the keyboard.'
+              : 'Runs in DOSBox, streamed from the Internet Archive. Click inside once it loads so it gets the keyboard.'}</p>
           </div>
         </div>`,
       init: initArcade,
     };
   });
 
-  /* GTA2 is the one that will not come inside.
+  /* The emulator lays its canvas out once, against whatever the iframe
+     measured at load, and never reflows — so maximising the window just
+     bought more black around a small picture. It is cross-origin, so
+     there is no telling it to resize.
 
-     It is a Win32 DirectX title, so DOSBox cannot run it and there is no
-     in-browser build to frame. The ROM sites that do host it are ad
-     farms: framing arcadespot gets you its logo, its whole navigation,
-     a rating widget and a thumbnail strip, with the game as a grey box
-     in the middle — the opposite of seamless.
-
-     A CSS crop to hide their chrome was measured and abandoned: the game
-     element sits at top 347/363/260/260 and left 20/90/160/304 at iframe
-     widths of 760/900/1040/1200, and its height changes at identical
-     widths as their ad slots reflow above it. Nothing stable to anchor
-     to, and these windows resize. So this one opens outward and says so
-     rather than half-working. */
-  APPS.gta2 = {
-    title: 'Grand Theft Auto 2', icon: 'gta', w: 460, h: 336, flush: true,
-    body: `
-      <div class="arc">
-        <div class="arc__start">
-          ${I.gta.replace('width="32" height="32"', 'width="52" height="52"')}
-          <h3>Grand Theft Auto 2</h3>
-          <p>Rockstar North, 1999. A Windows DirectX game — the DOS emulator
-             that runs the other titles here cannot touch it.</p>
-          <button class="w98btn arc__go"
-            data-ext="https://arcadespot.com/game/grand-theft-auto-2/">Launch</button>
-          <p class="arc__note">Opens in a new browser window, outside the
-             terminal. Everything else in this folder runs in place.</p>
-        </div>
-      </div>`,
-    init(win) {
-      win.querySelector('[data-ext]').addEventListener('click', e =>
-        window.open(e.currentTarget.dataset.ext, '_blank', 'noopener'));
-    },
-  };
+     Instead the frame keeps a fixed logical size and gets scaled to fit
+     by transform. The browser maps pointer coordinates through a
+     transform, so clicking still lands where it looks like it should,
+     and the whole thing composites on the GPU. 800x600 as the base
+     means the default window is a slight downscale — sharp — and a
+     maximised one a modest upscale, which a CRT is forgiving of. */
+  const ARC_W = 800, ARC_H = 600;
 
   function initArcade(win) {
     const root = win.querySelector('[data-arc]');
-    const item = root.dataset.arc;
+    const src = root.dataset.arc;
+    const fluid = root.hasAttribute('data-fluid');
+
+    if (root.hasAttribute('data-launch')) {
+      win.querySelector('[data-go]').addEventListener('click', () =>
+        window.open(src, '_blank', 'noopener'));
+      return;
+    }
 
     win.querySelector('[data-go]').addEventListener('click', () => {
+      const stage = document.createElement('div');
+      stage.className = 'arc__stage';
+
       const f = document.createElement('iframe');
       f.className = 'arc__frame';
-      f.title = 'Emulator';
+      f.title = 'Game';
       f.setAttribute('allow', 'autoplay; fullscreen; gamepad');
       f.setAttribute('scrolling', 'no');
-      f.src = 'https://archive.org/embed/' + item;
+      f.src = src;
+
+      stage.appendChild(f);
       root.innerHTML = '';
-      root.appendChild(f);
-      // DOSBox only sees the keyboard once the frame has it
+      root.appendChild(stage);
+
+      let ro = null;
+      if (fluid) {
+        // it lays itself out to whatever it is given — just give it everything
+        f.classList.add('arc__frame--fluid');
+      } else {
+        f.style.width = ARC_W + 'px';
+        f.style.height = ARC_H + 'px';
+        const fit = () => {
+          const r = stage.getBoundingClientRect();
+          if (!r.width || !r.height) return;
+          f.style.transform = 'scale(' + Math.min(r.width / ARC_W, r.height / ARC_H) + ')';
+        };
+        ro = new ResizeObserver(fit);
+        ro.observe(stage);
+        fit();
+      }
+
+      win._cleanup = () => { ro?.disconnect(); f.remove(); };
+      // the game only sees the keyboard once the frame has it
       defer(() => f.focus());
     });
 
@@ -1984,7 +2041,7 @@
       devmgr: 'skills', mail: 'contact', help: 'help',
       iexplore: 'ie', ie: 'ie', calendar: 'calendar', timedate: 'calendar',
       snake: 'snake', doom: 'doom', doom2: 'doom2', gta: 'gta', gta2: 'gta2',
-      games: 'games',
+      vicecity: 'vicecity', vc: 'vicecity', games: 'games',
     };
 
     function run(raw) {

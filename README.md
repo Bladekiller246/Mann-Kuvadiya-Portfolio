@@ -328,25 +328,47 @@ pressed**, so opening the folder doesn't spin up three emulators.
 | DOOM II | `doomII` — *Hell on Earth* |
 | Grand Theft Auto | `grand-theft-auto-1997-dma-design` — DMA Design, 1997 |
 
-**GTA 2 is the one that opens outward.** It's a Win32 DirectX title, so DOSBox
-can't run it and there's no in-browser build to frame. The ROM sites that host
-it are ad farms — framing one gets you its logo, its whole navigation, a rating
-widget and a thumbnail strip, with the game as a grey box in the middle.
+**Three ways a game gets into the folder**, declared per entry in `ARCADE`:
 
-A CSS crop to hide that chrome was measured and abandoned. The game element sits
-at:
+| flag | how it runs | used by |
+|---|---|---|
+| *(none)* | fixed 800x600 iframe, `transform: scale()` to fit | DOOM, DOOM II, GTA |
+| `fluid` | fills the window, no scaling | GTA 2 |
+| `launch` | opens in a real browser window | GTA: Vice City |
 
-| iframe width | top | left | size |
-|---|---|---|---|
-| 760 | 347 | 20 | 720×460 |
-| 900 | 363 | 90 | 720×380 |
-| 1040 | 260 | 160 | 720×380 |
-| 1200 | 260 | 304 | 720×**600** |
+**Why the scaling exists.** The Internet Archive's emulator measures the iframe
+once at load and lays its canvas out against that, then never reflows. Maximising
+the window just bought more black around a small picture, and the frame is
+cross-origin so there is no telling it to resize. Keeping it at a fixed logical
+size and scaling by transform fixes it — the browser maps pointer coordinates
+through a transform, so clicks still land where they look like they should, and
+it composites on the GPU.
 
-No stable anchor — the height even changes at identical widths as their ad slots
-reflow above it, and these windows resize. So the GTA 2 window is a launcher: it
-says what it is and opens the game in a real browser window. Everything else in
-the folder runs in place.
+**GTA 2 runs in place.** It is not emulated: `gta2js.vercel.app` is a JavaScript
+port of the engine (h0x91b/gta2-resurection) on the data from the official free
+release. It reflows to whatever size it is given — measured at 700x500, 1100x800
+and 520x380, the canvas tracked exactly — so it is marked `fluid` and skips the
+scaling entirely, which makes it the sharpest of the lot.
+
+An earlier version of this file claimed GTA 2 could not run in a browser at all,
+on the grounds that it is a Win32 DirectX title DOSBox cannot touch. The DOSBox
+half was right and the conclusion was wrong: a port sidesteps emulation, so the
+Win32 problem never arises.
+
+**Vice City has to open outward.** reVCDOS is a real WebAssembly port and it
+genuinely runs, but the only public build is on dos.zone, whose CSP names the
+hosts allowed to frame it:
+
+```
+frame-ancestors https://dos.zone https://cdn.dos.zone http://br.cdn.dos.zone
+                https://sec.dos.zone https://test.js-dos.com https://*.discord.com
+```
+
+That header is served site-wide, so `/revcdos/` and `/grand-theft-auto-vice-city/`
+refuse identically. Self-hosting is the documented alternative but means carrying
+Vice City's asset bundle, past GitHub's 100 MB file ceiling and Pages' 1 GB
+budget. Drop `launch: true` the day a framable build exists and it moves
+in-window with no other change.
 
 ### Internet Explorer really browses
 
