@@ -1,0 +1,25 @@
+name = "kvd-compat-proxy"
+main = "worker.js"
+compatibility_date = "2025-05-01"
+
+# On its own *.workers.dev subdomain deliberately — never a route on
+# the domain serving the portfolio. See the header of worker.js.
+workers_dev = true
+
+[vars]
+# Comma-separated origins allowed to embed this. Overrides the EMBEDDERS
+# list in worker.js, so production config never needs a code edit.
+EMBEDDERS = "https://bladekiller246.github.io,http://localhost:8000,http://127.0.0.1:8000"
+
+# Per-IP rate limit. The worker checks for this binding and runs without
+# it if the account or wrangler version doesn't offer it, so a deploy
+# that drops it still works — it is just uncapped. Confirm it took by
+# hammering the deployed URL and looking for a 429.
+# `period` only accepts 10 or 60.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 120
+  period = 60

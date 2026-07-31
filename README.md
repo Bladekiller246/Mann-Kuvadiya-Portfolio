@@ -294,7 +294,7 @@ they appeared. At 45 the curve still reads and the pointer stays honest.
 | Resize a window | Drag the grip at the bottom-right |
 | Maximise | Title-bar button, or double-click the title bar |
 | Minimise / switch | Title-bar button, or the taskbar buttons |
-| **Internet Explorer** | **Actually browses the web** — the frame under the chrome is your real browser engine. Working Back/Forward, a Stop that cancels the load, Refresh, Home, Favorites, and an address bar that takes any URL. Also serves an in-world site at `kvd.local` (`SITES` in `win98.js` §6c2), written the way a personal site was written in 1998. See [below](#internet-explorer-really-browses). |
+| **Internet Explorer** | **Actually browses the web** — the frame under the chrome is your real browser engine. Working Back/Forward, a Stop that cancels the load, Refresh, Home, Favorites, and an address bar that takes any URL. Sites that refuse to be framed are fetched through a CORS proxy instead and still come up. Also serves an in-world site at `kvd.local` (`SITES` in `win98.js` §6c2), written the way a personal site was written in 1998. See [below](#internet-explorer-really-browses). |
 | **Calendar** | Date/Time Properties: month dropdown, year field, working grid with today outlined, a live clock, and a Today button. Also opens on a **double-click of the tray clock**, same as the real shell. |
 | **MS-DOS Prompt** | A working shell over a virtual `A:\PORTFOLIO`. `HELP` lists the commands; `DIR`, `CD`, `TYPE`, `TREE`, `CLS`, `ECHO`, `VER`, `DATE`, `TIME`, `MEM`, `START`, `EXIT` all do what they say. `↑`/`↓` walk the history. Typing a filename alone prints it. |
 | **Calculator** | Standard view, working. Full keyboard: digits, `+ - * /`, `Enter`/`=`, `Backspace`, `Delete` (CE), `Esc` (C). Divide by zero says so. |
@@ -382,13 +382,69 @@ It resolves four ways:
 |---|---|
 | `kvd.local/…` that exists | The in-world page (`SITES`) |
 | `kvd.local/…` that doesn't | The genuine *"The page cannot be displayed"* |
-| A host on `IE_DENY` | Refusal page immediately, with the real reason |
+| A host on `IE_DENY` | Straight to compatibility mode — it would only refuse |
 | Anything else | Loaded for real in the frame |
 
-**What it cannot do, and why.** Sites that send `X-Frame-Options` or a
-`frame-ancestors` policy will not render inside another page — that is the
-browser obeying them, and nothing on this side can override it. More of the web
-allows framing than you'd guess (Wikipedia does); the big applications don't.
+**Sites that refuse to be framed.** `X-Frame-Options` and `frame-ancestors` are
+instructions to a *browser* about framing, and the browser keeps them —
+nothing on this side talks it out of that. So compatibility mode doesn't
+argue with it. It fetches the page's HTML through a public CORS proxy, which
+is an ordinary server-to-server GET that is neither a browser nor a frame, and
+hands the text to the frame as `srcdoc`. The frame never asks for permission
+to embed the site, so the site has nothing left to refuse. The trick is
+[x-frame-bypass](https://github.com/niutech/x-frame-bypass) (niutech, MIT);
+the implementation here is its own — see below for why.
+
+It engages on its own for `IE_DENY` hosts and for an `http://` address on an
+`https://` page (the proxy fetch is https, so this fixes mixed content rather
+than refusing it), and by hand from the **Retry in compatibility mode** button
+on the refusal page. Once a host has been fetched that way it stays that way
+for the session, so links off the page follow the same route. The status bar
+names the proxy that answered and the zone reads **Compatibility zone** — it
+should always be visible that a page came in second-hand.
+
+Public CORS proxies are the **fallback**. If `IE_WORKER` points at a deployed
+[`proxy/`](proxy/) worker, compatibility mode goes through that instead and
+gets a much better version of all of this — [see below](#a-proxy-of-your-own).
+
+**What it costs**, and the reasons it is not the default for everything:
+
+- The proxy sees every address opened through it, and these are free public
+  ones run by strangers. The fetch is anonymous — `credentials: 'omit'`, no
+  cookies — so it is always the logged-out view. Don't drive a session through
+  it. `IE_PROXIES` is a fallback chain of three; any of them can be
+  rate-limited or gone on the day.
+- Only the HTML travels through the proxy. Everything the page then pulls in
+  resolves against the injected `<base>` and loads from the real origin, so a
+  static page arrives whole and an application arrives broken — anything
+  fetched by the site's own XHR is same-origin to a document that is no longer
+  on that origin. Wikipedia and GitHub read fine; Gmail is never going to work.
+- GET only. A read-only proxy has no way to post a form, and the bridge says
+  so in the status bar instead of failing quietly.
+
+**Three deliberate differences from the original**, all forced by this codebase:
+
+- **Not a custom element.** `customElements.define(…, {extends: 'iframe'})` is
+  a customized built-in, which WebKit has never shipped and won't. The frame is
+  in the window template already, so this is plain functions on it instead.
+- **The proxied frame does not get `allow-same-origin`.** `srcdoc` inherits the
+  *embedder's* origin, so keeping it — as the original does — would run
+  arbitrary third-party HTML as first-party on this page, with the run of its
+  DOM and storage. Dropped for proxied loads only (`IE_SANDBOX`); a real
+  cross-origin load still gets it, where it means the *site's* origin and is
+  safe.
+- **Links come back by `postMessage`.** The original follows them through
+  `frameElement.load()`, which an opaque-origin frame cannot reach. `IE_BRIDGE`
+  is injected into every proxied page and posts the URL out; the parent checks
+  `e.source === frame.contentWindow` before believing a word of it, since the
+  DOOM cabinets are iframes on this page too and can post as well.
+
+The injected shim also strips the page's own CSP `<meta>` (it would otherwise
+forbid the bridge from running) and any `crossorigin` attributes (they now ask
+for CORS grants the new opaque origin will never get).
+
+More of the web allows plain framing than you'd guess — Wikipedia does — and
+those still load directly, at full speed, with their scripts working.
 
 **A page cannot detect the refusal.** This was measured, not assumed — for a
 blocked frame and a working one, every readable signal is identical:
@@ -403,21 +459,92 @@ Timing doesn't separate them either — the blocked one took ten times longer th
 the working one. The engine logs the reason to the console and exposes nothing
 to script. So instead of a heuristic that would be wrong either way:
 
-- `IE_DENY` lists the hosts people actually try, so those refuse **accurately**
-- everything else loads optimistically
+- `IE_DENY` lists the hosts people actually try, so those skip the pointless
+  attempt and go **straight to compatibility mode**
+- everything else loads optimistically, and gets the retry button if it fails
 - **New window** in the toolbar stays lit for the whole time a live page is up,
   so anything that slips through is one click from opening properly
-- `ieRewrite()` turns a YouTube watch URL into its framable `/embed/` form
-- an `https` page can't frame an `http` one; that's caught and explained up front
+- `ieRewrite()` turns a YouTube watch URL into its framable `/embed/` form, and
+  `IE_ALLOW` keeps `IE_DENY` from swallowing the result — the deny list matches
+  whole hosts, so `youtube.com` used to catch the rewrite it exists to produce
+- an `https` page can't frame an `http` one; that one is proxied instead
 
 The frame is sandboxed **without** `allow-top-navigation`: a site loaded in there
 must not be able to steer the page it's sitting inside.
 
-**Want it to load everything?** Two routes, both outside a static site: put a
-header-stripping proxy in front (a Cloudflare Worker will do it in ~40 lines,
-with the caveat that you're re-serving other people's pages and JS-heavy sites
-still break), or ship the whole thing as a desktop app — a Tauri webview isn't
-bound by framing rules because you control the client.
+### A proxy of your own
+
+Public CORS proxies are the fallback, not the good version. [`proxy/`](proxy/)
+is a Cloudflare Worker that does the same job properly: strips the framing
+headers at the source, rewrites the links so navigation stays in the frame,
+and streams instead of buffering. Deploy it, put its URL in `IE_WORKER`
+(`win98.js` §6c2), and the `srcdoc` path becomes the fallback for when it's
+down or over quota. **Empty by default** — nothing changes until you deploy.
+
+With it, a blocked site is an ordinary frame load again: real navigation, real
+history, a Stop that genuinely cancels, no 25-second buffer-then-render. The
+frame keeps `allow-same-origin`, which is safe *because the proxy is on its own
+origin* — see below.
+
+| | public CORS proxy | your worker |
+|---|---|---|
+| How it arrives | `srcdoc`, buffered whole | `src`, streamed |
+| Sandbox | no `allow-same-origin` | keeps it — the *worker's* origin |
+| Links | intercepted, posted to the parent | rewritten server-side, navigate normally |
+| Redirects | followed by the proxy, invisibly | rewritten, stay inside the frame |
+| Address bar | the URL you typed | tracks where the frame actually went |
+| Who sees the URL | a stranger's server | yours |
+
+**The proxy must not live on the portfolio's own origin.** Everything it
+returns becomes same-origin with whatever serves it. On its own `workers.dev`
+subdomain that isolates proxied pages from the portfolio. On a path of your own
+domain, every page it serves becomes first-party to the portfolio and can read
+and rewrite it — worse than having no proxy at all. That's why `IE_WORKER` is a
+full origin and not a path.
+
+**Tier 1 only, on purpose.** HTML documents and the links between them are
+rewritten; images, CSS and scripts are left to `<base>` and load from the real
+site. One worker request per page instead of one per asset, which is the
+difference between Cloudflare's free 100k/day being ~100k page views and being
+a few hundred. Making applications work means rewriting every subresource URL
+and shimming `fetch`/XHR inside the page — measure the quota before reaching
+for it.
+
+**What it refuses**, and why each one is there:
+
+- `POST` — a read-only proxy has no business forwarding writes
+- private and link-local addresses, including `169.254.169.254` — SSRF
+- sign-in, mail and banking hosts (`DENY_HOSTS`)
+- `<input type="password">` is replaced with a disabled box *during the
+  rewrite*, so a visitor cannot hand a real credential to a page your server
+  is serving
+- no cookies, no `Authorization`, no `Referer` reach the target — always the
+  logged-out view, with nothing of the visitor in it
+
+**On clickjacking**, since stripping framing headers is what invites it: every
+response leaves the worker carrying `frame-ancestors 'self' <EMBEDDERS>`. The
+site's policy is stripped and *this* one put back in its place, so a stranger
+who spoofs past the gate still can't embed the result in a page of their own.
+Beyond that there's no session in the frame to hijack — `credentials: omit`,
+`Set-Cookie` dropped, and the document lands on the worker's origin, which
+holds no cookie for the site it's showing. A click inside a proxied page acts
+as nobody. `X-Frame-Options: DENY` needs no special handling, incidentally:
+`DENY` and `SAMEORIGIN` are equally gone once the fetch is server-side. The
+one thing still standing is JavaScript framebusting — `top` is
+`[LegacyUnforgeable]`, so nothing can lie about it, and beating it means
+rewriting the page's JS. [`proxy/README.md`](proxy/README.md#deny-frame-ancestors-and-clickjacking)
+has the full reasoning.
+
+The embedder gate reads `Referer` and `Sec-Fetch-Site`, both of which anyone
+can set with `curl -H`. It stops drive-by scanning, not a determined person.
+The rate limit, the deny lists, and it being a throwaway subdomain are what
+actually hold the line. [`proxy/README.md`](proxy/README.md) has the deploy
+steps and the verification curls.
+
+**The remaining gap** after all of that is still applications — anything that
+needs a session. Nothing short of shipping as a desktop app fixes those; a
+Tauri webview isn't bound by framing rules at all, because you control the
+client.
 
 The DOS filesystem is one nested object (`DOS_FS` in `win98.js` §6d):
 directories are objects, files are strings. Adding a file to `A:` is one line.

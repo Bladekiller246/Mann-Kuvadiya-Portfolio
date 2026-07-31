@@ -373,7 +373,9 @@
           <div class="ie__page" data-page tabindex="0"></div>
           <!-- The real web, rendered by the real engine. sandbox without
                allow-top-navigation: a framed site must not be able to
-               steer the page it is sitting inside. -->
+               steer the page it is sitting inside. The attribute is set
+               again per load — a proxied page gets a tighter one. See
+               IE_SANDBOX. -->
           <iframe class="ie__frame" data-frame title="Web page" hidden
             referrerpolicy="no-referrer"
             sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
@@ -382,7 +384,7 @@
         <div class="w98status ie__status">
           <i data-status>Done</i>
           <i class="ie__prog"><b data-progress></b></i>
-          <i>Internet zone</i>
+          <i data-zone>Internet zone</i>
         </div>
       </div>`,
       init: initIE },
@@ -1445,8 +1447,10 @@
       <hr class="ie-rule">
       <h2 class="ie-h2">Out on the wire</h2>
       <p>This browser does reach the real internet &mdash; the page below the
-         chrome is rendered by the engine you are actually running. Sites that
-         forbid being framed will say so; plenty do not:</p>
+         chrome is rendered by the engine you are actually running. Plenty of
+         sites allow being framed; the ones that don't are fetched through a
+         proxy instead and arrive as plain HTML, which is enough for most of
+         the web and nowhere near enough for an application:</p>
       <ul>
         <li><a data-href="https://info.cern.ch/hypertext/WWW/TheProject.html">The
             first website ever published</a> (CERN, 1991)</li>
@@ -1537,22 +1541,32 @@
       <li>Accept that this terminal has no uplink to anywhere but itself.</li>
     </ul>`);
 
-  /* Shown when the site refuses to be framed. Not a failure of this
-     browser — the site sent X-Frame-Options or a frame-ancestors policy
-     and the engine obeyed it, which is the whole point of those headers
-     and cannot be worked around from a page. */
+  /* Shown when the page would not come up — either the site refuses to
+     be framed and the engine obeyed it, or compatibility mode was tried
+     and no proxy would answer. Offers both ways forward. */
   const IE_REFUSED = (url, why) => page('Connection refused', `
     <h2 class="ie-h2">${esc(why)}</h2>
     <hr class="ie-rule">
     <p><b>${esc(url)}</b> would not open in this window.</p>
     <p class="ie-note">Most large sites send <b>X-Frame-Options</b> or a
        <b>frame-ancestors</b> policy telling browsers never to display them
-       inside another page. Your browser is obeying that, correctly, and no
-       amount of code on this side can override it.</p>
+       inside another page. Your browser is obeying that, correctly, and
+       nothing on this side can talk it out of it.</p>
     <hr class="ie-rule">
-    <p>Plenty of the web does allow it — try <b>Favorites</b> in the menu bar.
-       Or open this one properly:</p>
+    <p>Two ways round it:</p>
+    <p><button class="w98btn" data-proxy="${esc(url)}">Retry in compatibility mode</button>
+       <span class="ie-note">&nbsp;fetches the page through a public proxy
+       instead of framing it &mdash; see below</span></p>
     <p><button class="w98btn" data-external="${esc(url)}">Open ${esc(url)} in a new window</button></p>
+    <hr class="ie-rule">
+    <p class="ie-note"><b>About compatibility mode.</b> The framing headers are
+       the site's word to <i>your browser</i>, so the page is fetched by
+       somebody else's server instead and handed to the frame as text. That
+       server sees the address. Only the HTML travels that way &mdash; images,
+       stylesheets and scripts still come from the site itself &mdash; so
+       ordinary pages arrive intact and anything that runs as an application
+       will not. Forms that post, and anything you are logged in to, will not
+       work at all.</p>
     <p><a data-href="http://kvd.local/">&laquo; Back to the station</a></p>`);
 
   /* Hosts known to forbid framing, so the refusal page can be shown at
@@ -1568,7 +1582,11 @@
 
      So: this list for the sites people actually try, an optimistic load
      for everything else, and an always-available "open properly"
-     button for whatever slips through. Not exhaustive and cannot be. */
+     button for whatever slips through. Not exhaustive and cannot be.
+
+     These no longer refuse outright — a host listed here goes straight
+     to compatibility mode below, since there is no point framing it
+     first to watch it fail. */
   const IE_DENY = [
     'google.com', 'google.co.in', 'gmail.com', 'youtube.com', 'github.com',
     'facebook.com', 'instagram.com', 'x.com', 'twitter.com', 'linkedin.com',
@@ -1576,6 +1594,13 @@
     'microsoft.com', 'live.com', 'outlook.com', 'bing.com', 'stackoverflow.com',
     'neocities.org', 'openai.com', 'chatgpt.com', 'anthropic.com', 'claude.ai',
     'notion.so', 'figma.com', 'twitch.tv', 'discord.com', 'whatsapp.com',
+  ];
+
+  /* Addresses that frame fine even though their host is on IE_DENY,
+     which matches whole hosts and would otherwise swallow the embeds
+     ieRewrite() exists to produce. Checked first. */
+  const IE_ALLOW = [
+    /^https?:\/\/(?:www\.)?youtube(?:-nocookie)?\.com\/embed\//i,
   ];
 
   /* Some hosts refuse their normal pages but publish a framable embed —
@@ -1586,6 +1611,114 @@
     if (yt) return 'https://www.youtube.com/embed/' + yt[1];
     return u;
   }
+
+  /* ── compatibility mode ──────────────────────────────────
+     The trick from x-frame-bypass (niutech, MIT): X-Frame-Options and
+     frame-ancestors are instructions to a *browser* about framing, and
+     an ordinary server-to-server GET is neither a browser nor a frame.
+     So fetch the HTML through a public CORS proxy and hand the text to
+     the frame as `srcdoc`. The frame never asks the site for permission
+     to embed it, so there is nothing left for the site to refuse.
+
+     What it costs, stated plainly because it is not free:
+
+     · The proxy sees every address opened this way. These are free
+       public ones, run by strangers. The fetch is anonymous — no
+       cookies, no credentials, `credentials: 'omit'` — so it is always
+       the logged-out view of a page. Don't drive a session through it.
+     · Only the HTML comes through the proxy. Everything the page then
+       pulls in resolves against <base> and loads from the real origin,
+       so a static page arrives whole and an application arrives broken:
+       anything fetched by the site's own XHR is same-origin to a
+       document that is no longer on that origin, and fails.
+     · `srcdoc` inherits *this* document's origin, so a proxied load
+       drops `allow-same-origin` from the sandbox. The fetched HTML gets
+       an opaque origin and cannot touch this page — which is the whole
+       reason to drop it, since otherwise arbitrary third-party script
+       would be running first-party here. The cost is `frameElement`,
+       which is how the original follows links; links come back over
+       postMessage instead (IE_BRIDGE).
+     · GET only. A read-only proxy has no way to post a form.
+
+     Tried in order, first one that answers wins. Any of them can be
+     rate-limited or gone on any given day, which is what the fallback
+     chain and the refusal page are for. */
+  /* A proxy of your own beats all of it: it can strip the headers at
+     the source, rewrite the links so navigation stays in the frame,
+     and stream instead of buffering. Deploy proxy/worker.js, put its
+     URL here, and everything below becomes the fallback for when it is
+     down or over quota. Empty = never called.
+
+     It has to be a *different origin* from this page. Everything it
+     serves is same-origin with whatever serves it, and the frame keeps
+     allow-same-origin for a real load — on its own workers.dev
+     subdomain that isolates proxied pages, on a path of this domain it
+     would hand them the run of this one. See proxy/README.md. */
+  const IE_WORKER = '';
+
+  const IE_PROXIES = [
+    ['api.allorigins.win', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
+    ['api.codetabs.com',   u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u)],
+    ['corsproxy.io',       u => 'https://corsproxy.io/?url=' + encodeURIComponent(u)],
+  ];
+
+  const IE_SANDBOX = {
+    // a real cross-origin load: same-origin means the *site's* origin
+    live:  'allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox',
+    // srcdoc: same-origin would mean *ours*, so it does not get it
+    proxy: 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox',
+  };
+
+  /* Injected into every proxied page. It is the only way back out of an
+     opaque-origin frame: no shared DOM, so navigation is a message. */
+  const IE_BRIDGE = `<script>(function(){
+  var post = function (m) { m.kvdIE = 1; parent.postMessage(m, '*'); };
+  var link = function (e) { return e.target.closest && e.target.closest('a[href]'); };
+  addEventListener('click', function (e) {
+    var a = link(e);
+    if (!a || a.target === '_blank') return;
+    var raw = a.getAttribute('href') || '';
+    if (!raw || raw.charAt(0) === '#' || /^(javascript|mailto|tel):/i.test(raw)) return;
+    e.preventDefault();
+    post({ go: a.href });
+  }, true);
+  addEventListener('submit', function (e) {
+    var f = e.target;
+    e.preventDefault();
+    if ((f.method || 'get').toLowerCase() === 'post') {
+      post({ note: 'That form has to be posted, which the proxy cannot do.' });
+      return;
+    }
+    var q = new URLSearchParams(new FormData(f)).toString();
+    post({ go: (f.action || location.href).split('#')[0].split('?')[0] + (q ? '?' + q : '') });
+  }, true);
+  addEventListener('mouseover', function (e) { var a = link(e); if (a) post({ hover: a.href }); }, true);
+  addEventListener('mouseout',  function (e) { if (link(e)) post({ hover: '' }); }, true);
+})();<\/script>`;
+
+  const IE_DOC = body =>
+    `<body style="margin:0;padding:12px 14px;background:#fff;color:#000;` +
+    `font:13px/1.5 'MS Sans Serif',Tahoma,sans-serif">${body}</body>`;
+
+  const IE_FETCHING = IE_DOC('<p style="color:#555">Contacting proxy&hellip;</p>');
+
+  /* <base> so relative URLs still resolve against the real site, the
+     bridge for navigation, and two things removed: the page's own CSP
+     meta, which would otherwise forbid the bridge from running, and
+     `crossorigin` attributes, which now ask for CORS the new opaque
+     origin will never be granted. */
+  function ieShim(html, url) {
+    const head = `<base href="${esc(url)}">` + IE_BRIDGE;
+    const out = html
+      .replace(/<meta[^>]+http-equiv\s*=\s*["']?content-security-policy["']?[^>]*>/gi, '')
+      .replace(/\s+crossorigin(\s*=\s*(["'][^"']*["']|\S+))?/gi, '');
+    return /<head[^>]*>/i.test(out)
+      ? out.replace(/<head[^>]*>/i, m => m + head)
+      : '<!DOCTYPE html><html><head>' + head + '</head>' + out + '</html>';
+  }
+
+  const iePlain = text =>
+    IE_DOC(`<pre style="white-space:pre-wrap;font:12px 'Courier New',monospace">${esc(text)}</pre>`);
 
   /* Verified framable at the time of writing — checked by reading their
      response headers, not by guessing. A site can add the header any
@@ -1610,12 +1743,16 @@
     const prog   = win.querySelector('[data-progress]');
     const throb  = win.querySelector('[data-throb]');
     const favBox = win.querySelector('[data-favs]');
+    const zone   = win.querySelector('[data-zone]');
     const nav    = k => win.querySelector('[data-nav="' + k + '"]');
 
     const hist = [];
     let at = -1;
-    let load = null;        // { timer, url, live }
+    let load = null;        // { timer, url, live, pending, ctrl }
     let want = null;        // the url the iframe is currently trying
+    let note = '';          // what the status bar says instead of "Done"
+    let titled = false;     // the frame told us its own title; don't overwrite it
+    const forced = new Set();   // hosts pinned to compatibility mode
 
     // "kvd.local/missions" — the key SITES is written in
     const keyOf = u => u.replace(/^[a-z]+:\/\//i, '').replace(/\/+$/, '').toLowerCase();
@@ -1647,6 +1784,7 @@
       if (!load) return;
       clearInterval(load.timer);
       clearTimeout(load.giveUp);
+      load.ctrl?.abort();     // a proxy fetch in flight, if there is one
       load = null;
       want = null;
       throb.classList.remove('is-spin');
@@ -1655,10 +1793,16 @@
       paintNav();
     }
 
-    /* ── local pages ── */
-    function drawLocal(u, p) {
+    /* srcdoc outranks src, so both go or neither does */
+    function blankFrame() {
       frame.hidden = true;
       frame.removeAttribute('src');
+      frame.removeAttribute('srcdoc');
+    }
+
+    /* ── local pages ── */
+    function drawLocal(u, p) {
+      blankFrame();
       view.hidden = false;
       view.innerHTML = p.body;
       view.scrollTop = 0;
@@ -1672,21 +1816,22 @@
       load = null; want = null;
       throb.classList.remove('is-spin');
       prog.style.width = '0%';
-      status.textContent = 'Done';
+      status.textContent = note || 'Done';
       paintNav();
     }
 
     /* ── the real web ── */
 
     const hostOf = u => { try { return new URL(u).hostname.toLowerCase(); } catch (_) { return ''; } };
+    const framable = u => IE_ALLOW.some(r => r.test(u));
     const denied = u => {
+      if (framable(u)) return false;
       const h = hostOf(u);
       return IE_DENY.some(d => h === d || h.endsWith('.' + d));
     };
 
     function showRefusal(u, why) {
-      frame.hidden = true;
-      frame.removeAttribute('src');
+      blankFrame();
       view.hidden = false;
       view.innerHTML = IE_REFUSED(u, why).body;
       view.scrollTop = 0;
@@ -1701,29 +1846,145 @@
         showRefusal(u, 'The page is taking too long to respond');
         return;
       }
-      setTitle(u.replace(/^https?:\/\//, '').replace(/\/$/, ''));
+      // DOMContentLoaded beats load, so a title from the bridge is
+      // already the better one by the time this runs
+      if (!titled) setTitle(u.replace(/^https?:\/\//, '').replace(/\/$/, ''));
       finish();
     }
 
-    frame.addEventListener('load', () => { if (want) settleLive(want, 'load'); });
+    // the placeholder doc fires this too, hence `pending`
+    frame.addEventListener('load', () => {
+      if (want && !load?.pending) settleLive(want, 'load');
+    });
 
     function drawLive(u) {
-      // an https page cannot pull in an http frame, and the engine will
-      // not say why — so say it first
-      if (location.protocol === 'https:' && /^http:\/\//i.test(u)) {
-        showRefusal(u, 'This page is secure and that address is not');
+      // an https page cannot pull in an http frame — but a proxy fetched
+      // over https can, so that is a reason to proxy rather than refuse
+      const mixed = location.protocol === 'https:' && /^http:\/\//i.test(u);
+      const pinned = forced.has(hostOf(u)) && !framable(u);
+      if (mixed || denied(u) || pinned) {
+        if (IE_WORKER) drawWorker(u); else drawProxied(u);
         return;
       }
-      if (denied(u)) {
-        showRefusal(u, 'The site refuses to open inside another page');
-        return;
-      }
+
       view.hidden = true;
       frame.hidden = false;
       want = u;
+      frame.removeAttribute('srcdoc');
+      frame.setAttribute('referrerpolicy', 'no-referrer');
+      frame.setAttribute('sandbox', IE_SANDBOX.live);
       frame.src = u;
       if (load) load.giveUp = setTimeout(() => settleLive(u, 'timeout'), 12000);
     }
+
+    /* Our own proxy, when there is one. This is an ordinary frame load
+       again — real navigation, real history, streamed, and a Stop that
+       cancels for real — so it keeps allow-same-origin, which here
+       means same-origin with the *worker*, not with this page. */
+    function drawWorker(u) {
+      view.hidden = true;
+      frame.hidden = false;
+      want = u;
+      frame.removeAttribute('srcdoc');
+      // the worker checks this to know the call came from the site; it
+      // is never passed on, so the target still sees nothing of us
+      frame.setAttribute('referrerpolicy', 'origin');
+      frame.setAttribute('sandbox', IE_SANDBOX.live);
+      // hand-pasted constant, so don't trust it to lack a trailing slash
+      frame.src = IE_WORKER.replace(/\/+$/, '') + '/?url=' + encodeURIComponent(u);
+      forced.add(hostOf(u));
+      zone.textContent = 'Compatibility zone';
+      note = 'Done — fetched through the proxy';
+      if (load) load.giveUp = setTimeout(() => settleLive(u, 'timeout'), 20000);
+    }
+
+    /* ── compatibility mode ── */
+
+    async function ieFetch(u, signal) {
+      let last = null;
+      for (const [name, wrap] of IE_PROXIES) {
+        try {
+          const res = await fetch(wrap(u), { signal, credentials: 'omit' });
+          if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+          const type = (res.headers.get('content-type') || '').toLowerCase();
+          if (type && !/^text\/|html|xml|json|javascript/.test(type))
+            throw new Error(type + ' is not a page');
+          const body = await res.text();
+          if (!body.trim()) throw new Error('empty response');
+          return {
+            via: name,
+            doc: /html|xml/.test(type) || !type ? ieShim(body, u) : iePlain(body),
+          };
+        } catch (err) {
+          if (signal.aborted) throw err;
+          last = err;
+        }
+      }
+      throw last || new Error('no proxy configured');
+    }
+
+    async function drawProxied(u) {
+      view.hidden = true;
+      frame.hidden = false;
+      want = u;
+      frame.removeAttribute('src');
+      frame.setAttribute('referrerpolicy', 'no-referrer');
+      frame.setAttribute('sandbox', IE_SANDBOX.proxy);
+      frame.srcdoc = IE_FETCHING;
+      status.textContent = 'Fetching ' + u + ' through a proxy…';
+
+      const ctrl = new AbortController();
+      if (load) {
+        load.pending = true;    // the placeholder's load event is not the page
+        load.ctrl = ctrl;
+        load.giveUp = setTimeout(() => ctrl.abort(), 25000);
+      }
+
+      let got;
+      try {
+        got = await ieFetch(u, ctrl.signal);
+      } catch (err) {
+        if (want !== u) return;   // stopped, or navigated away mid-flight
+        showRefusal(u, ctrl.signal.aborted
+          ? 'The proxy is taking too long to respond'
+          : 'No proxy would fetch that address');
+        return;
+      }
+      if (want !== u) return;
+
+      forced.add(hostOf(u));      // links off this page go the same way
+      zone.textContent = 'Compatibility zone';
+      note = 'Done — fetched through ' + got.via;
+      if (load) load.pending = false;
+      frame.srcdoc = got.doc;
+    }
+
+    /* The only channel out of an opaque-origin frame. Anything else on
+       the page can postMessage too — the DOOM cabinets are iframes —
+       so the sender is checked before a word of it is believed. */
+    const onBridge = e => {
+      if (e.source !== frame.contentWindow) return;
+      const d = e.data;
+      if (!d || d.kvdIE !== 1) return;
+
+      // srcdoc mode: the page cannot navigate itself, so it asks
+      if (typeof d.go === 'string') { go(d.go); return; }
+
+      // worker mode: it navigated on its own and is reporting where to.
+      // The address bar is cross-origin to it and cannot look.
+      if (typeof d.at === 'string' && d.at !== hist[at]) {
+        hist.splice(at + 1);
+        hist.push(d.at);
+        at = hist.length - 1;
+        urlIn.value = d.at;
+        forced.add(hostOf(d.at));
+        paintNav();
+      }
+      if (d.title) { titled = true; setTitle(d.title); }
+      if (typeof d.note === 'string') status.textContent = d.note;
+      if (typeof d.hover === 'string') status.textContent = d.hover || note || 'Done';
+    };
+    window.addEventListener('message', onBridge);
 
     function go(raw, push) {
       let u = normalise(raw);
@@ -1738,6 +1999,9 @@
         at = hist.length - 1;
       }
       urlIn.value = u;
+      note = '';
+      titled = false;
+      zone.textContent = 'Internet zone';
       closeFavs();
 
       const local = isLocal(u) ? (SITES[keyOf(u)] || IE_404(u)) : null;
@@ -1794,6 +2058,13 @@
         b.addEventListener('click', () =>
           window.open(b.dataset.external, '_blank', 'noopener')));
 
+      // pin the host first, so links off the page it fetches follow it
+      view.querySelectorAll('[data-proxy]').forEach(b =>
+        b.addEventListener('click', () => {
+          forced.add(hostOf(b.dataset.proxy));
+          go(b.dataset.proxy, false);
+        }));
+
       const sign = view.querySelector('[data-gbsign]');
       if (sign) {
         sign.addEventListener('click', () => {
@@ -1822,7 +2093,11 @@
     });
     urlIn.addEventListener('focus', () => urlIn.select());
 
-    win._cleanup = () => { stop(); frame.removeAttribute('src'); };
+    win._cleanup = () => {
+      stop();
+      window.removeEventListener('message', onBridge);
+      blankFrame();
+    };
     go(IE_HOME);
   }
 
