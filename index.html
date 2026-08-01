@@ -409,8 +409,9 @@
 </svg>
 
 <script src="crt.js"></script>
-<!-- first: both shells record into it, and it must exist before either runs -->
+<!-- first: both shells read and write these, and neither owns them -->
 <script src="journal.js"></script>
+<script src="segment.js"></script>
 <!-- before win98.js: it looks for window.OVERDRIVE when credentials clear -->
 <script src="overdrive.js"></script>
 <script src="win98.js"></script>

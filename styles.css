@@ -338,6 +338,19 @@ body.is-cold .statusline{ opacity:0; pointer-events:none; }
 }
 
 
+/* ── DEGAUSS ─────────────────────────────────────────────
+   The light half of the coil firing. The geometry half is driven from
+   crt.js, because the warp is an SVG filter and CSS cannot reach it. */
+body.is-degauss .raster{ animation:degaussFlash .62s ease-out 1; }
+@keyframes degaussFlash{
+  0%  { filter:brightness(1.5) contrast(.85) saturate(1.25); }
+  24% { filter:brightness(1.16) contrast(1.04); }
+  48% { filter:brightness(1.24) contrast(.97); }
+  72% { filter:brightness(1.05) contrast(1.01); }
+  100%{ filter:none; }
+}
+@media (prefers-reduced-motion:reduce){ body.is-degauss .raster{ animation:none; } }
+
 /* whole-screen brightness flicker */
 .glass::after{
   content:""; position:absolute; inset:0; z-index:14; pointer-events:none;

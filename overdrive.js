@@ -54,24 +54,7 @@
      reference numbers on everything does not read as a HUD. */
 
   const PANELS = {
-    overview: {
-      code: '01', name: 'Overview', body: `
-        <h1 class="od__h">RESTRICTED<br><b>SEGMENT</b></h1>
-        <p class="od__sub">Tier-0 · operator session · air-gapped</p>
-
-        <dl class="od__grid">
-          <div class="od__cell od__cell--hot"><dt>Clearance</dt><dd>TIER-0</dd></div>
-          <div class="od__cell"><dt>Segment uptime</dt><dd>412<small> D</small></dd></div>
-          <div class="od__cell od__cell--cool"><dt>Uplink</dt><dd>NONE</dd></div>
-          <div class="od__cell"><dt>Watchdog</dt><dd>OFF</dd></div>
-        </dl>
-
-        <p>This is the half of the station that does not get a guest session.
-           Everything through the GUEST door is a reproduction of 1998 and
-           behaves itself. Nothing in here has to.</p>
-        <hr class="od__rule">
-        <p class="od__note">Contents pending. The shell, the rail and the panel
-           system are live — screens get filled as they are specified.</p>` },
+    overview: { code: '01', name: 'Overview', live: true, body: overviewPanel },
 
     operator: {
       code: '02', name: 'Operator', body: `
@@ -91,28 +74,299 @@
           <li><b>03</b><span>This segment</span><em>tier-0</em></li>
         </ul>` },
 
-    vault: {
-      code: '03', name: 'Vault', body: `
-        <h1 class="od__h">THE<br><b>VAULT</b></h1>
-        <p class="od__sub">Sealed records · operator eyes</p>
-
-        <ul class="od__list">
-          <li><b>▓▓</b><span>Entry withheld</span><em>sealed</em></li>
-          <li><b>▓▓</b><span>Entry withheld</span><em>sealed</em></li>
-          <li><b>▓▓</b><span>Entry withheld</span><em>sealed</em></li>
-          <li><b>▓▓</b><span>Entry withheld</span><em>sealed</em></li>
-        </ul>
-        <p class="od__locked">Contents not yet written</p>
-        <hr class="od__rule">
-        <p class="od__note">A vault with nothing in it is still a vault. Say what
-           goes here and the seals come off.</p>` },
+    recon:    { code: '03', name: 'Recon',    live: true, body: reconPanel },
+    segment:  { code: '04', name: 'Segment',  live: true, body: segmentPanel },
+    /* A function, not a const string: PANELS is an object literal and
+       evaluates the moment it is reached, so a `const` declared further
+       down would be in its dead zone and take the whole module with it.
+       The others are function declarations and hoist; this one has to
+       be too. */
+    findings: { code: '05', name: 'Findings', body: findingsPanel },
+    console:  { code: '06', name: 'Console',  live: true, body: consolePanel },
 
     /* The one panel with nothing invented on it. Everything here was
        actually recorded by journal.js while somebody used the guest
        segment — which is why it is `live`: it has to be rebuilt at the
        moment it is opened, not baked into the shell at boot. */
-    watch: { code: '04', name: 'Watch', live: true, body: watchPanel },
+    watch: { code: '07', name: 'Watch', live: true, body: watchPanel },
   };
+
+
+  /* ── the presence ──────────────────────────────────────
+     Something that was paying attention while you were gone, speaking
+     from what journal.js actually recorded. No model, no cleverness —
+     templated lines over real numbers, picked by what happened.
+
+     The whole effect rests on it being *specific*. "Activity detected"
+     is a screensaver; "they spent nineteen minutes in Minesweeper and
+     never opened the browser" is somebody watching. */
+  function presence(s) {
+    const say = [];
+
+    if (!s || !s.visits) {
+      return 'Nobody has been through since you left. The room has been exactly as you set it.';
+    }
+
+    say.push(s.visits === 1
+      ? 'One guest, once.'
+      : `${s.visits} guests through that door.`);
+
+    const top = s.apps && s.apps[0];
+    if (top && top.ms > 20000) {
+      say.push(`The last one spent ${dur(top.ms).replace(/<[^>]+>/g, '')} in ${top.label}. I watched all of it.`);
+    } else if (s.apps && s.apps.length) {
+      say.push('They opened things and closed them again without settling.');
+    } else {
+      say.push('They opened nothing at all. Just looked.');
+    }
+
+    const out = (s.seen || []).filter(x => !x.local).length;
+    if (out) say.push(`${out} address${out === 1 ? '' : 'es'} pointed outside the station. I let them through.`);
+
+    if (s.admin.denied) {
+      say.push(`This door was tried ${s.admin.denied} time${s.admin.denied === 1 ? '' : 's'} and refused every one.`);
+    } else if (s.admin.attempts > 1) {
+      say.push('They found this door more than once.');
+    }
+
+    return say.join(' ');
+  }
+
+  function overviewPanel() {
+    const s = window.JOURNAL?.summary();
+    const seg = window.SEGMENT?.get() || {};
+    const hidden = (seg.hide || []).length;
+
+    return `
+      <h1 class="od__h">RESTRICTED<br><b>SEGMENT</b></h1>
+      <p class="od__sub">Tier-0 · operator session · air-gapped</p>
+
+      <div class="od__voice"><p>${presence(s)}</p></div>
+
+      <dl class="od__grid">
+        <div class="od__cell od__cell--hot"><dt>Guest sessions</dt><dd>${s ? s.visits : 0}</dd></div>
+        <div class="od__cell"><dt>Time observed</dt><dd>${dur(s ? s.totalMs : 0)}</dd></div>
+        <div class="od__cell ${s && s.admin.attempts ? 'od__cell--hot' : ''}">
+          <dt>Attempts on this door</dt><dd>${s ? s.admin.attempts : 0}</dd></div>
+        <div class="od__cell od__cell--cool"><dt>Icons withheld</dt><dd>${hidden}</dd></div>
+      </dl>
+
+      <p>This is the half of the station that does not get a guest session.
+         Everything through the GUEST door is a reproduction of 1998 and behaves
+         itself. Nothing in here has to.</p>`;
+  }
+
+
+  /* ── recon ─────────────────────────────────────────────
+     A header report on any address, which is the one piece of real
+     tooling in this shell. It has to go through the worker: the browser
+     deliberately exposes none of this to script — that is the whole
+     reason a page cannot tell a blocked frame from a working one — and
+     a public CORS proxy strips the very headers worth reading.
+
+     Empty IE_WORKER means no server, and the panel says so rather than
+     inventing a verdict. */
+  function reconPanel() {
+    if (!ctx?.proxy) {
+      return `
+        <h1 class="od__h">RECON</h1>
+        <p class="od__sub">Security header report · needs a server</p>
+        <p>Reading another site's response headers cannot be done from a page.
+           The browser hides them from script on purpose, which is exactly why a
+           framed site cannot be told apart from a blocked one, and a public CORS
+           proxy drops them before they reach you.</p>
+        <p class="od__locked">No proxy deployed</p>
+        <p class="od__note">Deploy <b>proxy/worker.js</b>, put its URL in
+           <b>IE_WORKER</b> in win98.js, and this panel starts answering.</p>`;
+    }
+
+    return `
+      <h1 class="od__h">RECON</h1>
+      <p class="od__sub">Security header report · read-only</p>
+
+      <form class="od__form" id="odScanForm">
+        <input class="od__in" id="odScan" spellcheck="false" autocomplete="off"
+               placeholder="github.com" aria-label="Address to inspect">
+        <button class="od__go" type="submit">SCAN</button>
+      </form>
+
+      <div id="odScanOut"></div>
+      <p class="od__note">One GET through your own proxy, nothing stored, no
+         credentials sent. It reports what the server said — it does not test,
+         probe or attack anything.</p>`;
+  }
+
+  const HEADER_NOTE = {
+    'x-frame-options': 'Refuses framing outright. Blunt, and superseded by CSP.',
+    'content-security-policy': 'The modern control. frame-ancestors lives here.',
+    'strict-transport-security': 'Forces https on every later visit.',
+    'x-content-type-options': 'Stops the browser guessing a file is script.',
+    'referrer-policy': 'Decides how much of the URL leaves with a click.',
+    'permissions-policy': 'Camera, mic, geolocation and the rest.',
+    'cross-origin-opener-policy': 'Cuts a popup off from its opener.',
+    'cross-origin-resource-policy': 'Decides who may embed this as a resource.',
+    'access-control-allow-origin': 'Present means it is readable cross-origin.',
+    'server': 'Naming the software is free intelligence for an attacker.',
+    'x-powered-by': 'As above, and never useful to a visitor.',
+  };
+
+  async function runScan(root) {
+    const input = $('#odScan', root);
+    const out = $('#odScanOut', root);
+    let url = input.value.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+    out.innerHTML = `<p class="od__sub">Reading ${esc(url)}&hellip;</p>`;
+    ctx?.audio?.key?.();
+
+    let data;
+    try {
+      const res = await fetch(
+        ctx.proxy.replace(/\/+$/, '') + '/inspect?url=' + encodeURIComponent(url));
+      data = await res.json();
+    } catch (err) {
+      out.innerHTML = `<p class="od__locked">The proxy did not answer</p>`;
+      return;
+    }
+
+    if (data.error) {
+      out.innerHTML = `<p class="od__locked">${esc(data.error)}</p>`;
+      return;
+    }
+
+    const f = data.framing;
+    const rows = Object.entries(data.headers).map(([h, v]) => {
+      const want = !['access-control-allow-origin', 'server', 'x-powered-by'].includes(h);
+      const good = want ? !!v : !v;
+      return `<li class="od__row ${good ? 'is-ok' : 'is-bad'}">
+          <b>${good ? '&check;' : '&times;'}</b>
+          <span><u>${esc(h)}</u>${v ? `<code>${esc(v.slice(0, 120))}</code>`
+            : '<code class="od__absent">absent</code>'}
+          <em>${HEADER_NOTE[h] || ''}</em></span>
+        </li>`;
+    }).join('');
+
+    out.innerHTML = `
+      <dl class="od__grid">
+        <div class="od__cell"><dt>Status</dt><dd>${data.status}</dd></div>
+        <div class="od__cell"><dt>Answered in</dt><dd>${data.ms}<small>ms</small></dd></div>
+        <div class="od__cell ${f.framable ? 'od__cell--cool' : 'od__cell--hot'}">
+          <dt>Framable</dt><dd>${f.framable ? 'YES' : 'NO'}</dd></div>
+      </dl>
+      ${f.frameAncestors
+        ? `<p class="od__note">frame-ancestors: <b>${esc(f.frameAncestors)}</b></p>` : ''}
+      <ul class="od__rows">${rows}</ul>`;
+  }
+
+
+  /* ── segment ───────────────────────────────────────────
+     The operator deciding what the next visitor walks into. Everything
+     here writes to segment.js and is read by win98.js as the guest
+     desktop is built. */
+  function segmentPanel() {
+    const seg = window.SEGMENT?.get() || { hide: [], arcade: true, note: '' };
+    const apps = ctx?.apps || [];
+
+    const icons = apps.map(a => {
+      const off = (seg.hide || []).includes(a.id);
+      return `<button class="od__chip ${off ? 'is-off' : ''}" data-hide="${esc(a.id)}">
+          <b>${off ? '&times;' : '&check;'}</b>${esc(a.name)}</button>`;
+    }).join('');
+
+    return `
+      <h1 class="od__h">SEGMENT</h1>
+      <p class="od__sub">What the guest is allowed to find</p>
+
+      <p class="od__sub" style="margin-bottom:.6rem">Desktop icons</p>
+      <div class="od__chips">${icons || '<span class="od__note">No desktop yet.</span>'}</div>
+
+      <hr class="od__rule">
+
+      <p class="od__sub" style="margin-bottom:.6rem">The arcade</p>
+      <button class="od__chip ${seg.arcade === false ? 'is-off' : ''}" id="odArcade">
+        <b>${seg.arcade === false ? '&times;' : '&check;'}</b>
+        ${seg.arcade === false ? 'Sealed' : 'Open'}</button>
+      <p class="od__note">Sealed cabinets still open and still say why. A game
+         that vanishes is a bug report; one that says it was sealed is a story.</p>
+
+      <hr class="od__rule">
+
+      <p class="od__sub" style="margin-bottom:.6rem">Leave something behind</p>
+      <textarea class="od__area" id="odNote" rows="4"
+        placeholder="Opens by itself on the next guest's desktop.">${esc(seg.note || '')}</textarea>
+      <button class="od__go" id="odNoteSave">LEAVE IT</button>
+      <span class="od__note" id="odNoteMsg"></span>`;
+  }
+
+
+  /* ── console ───────────────────────────────────────────
+     Operator powers over the tube itself. These are the controls that
+     do not belong on the fascia — a visitor has no business degaussing
+     anything, but the operator does. */
+  function consolePanel() {
+    const masks = ['none', 'dot', 'grille'];
+    const now = document.body.dataset.mask || 'none';
+    return `
+      <h1 class="od__h">CONSOLE</h1>
+      <p class="od__sub">Direct control of the tube</p>
+
+      <div class="od__chips">
+        <button class="od__chip" data-cmd="degauss"><b>&#9678;</b>Degauss</button>
+        <button class="od__chip" data-cmd="burst"><b>&#9776;</b>Interference</button>
+        <button class="od__chip" data-cmd="power"><b>&#9211;</b>Cut power</button>
+      </div>
+
+      <hr class="od__rule">
+      <p class="od__sub" style="margin-bottom:.6rem">Phosphor mask</p>
+      <div class="od__chips">
+        ${masks.map(m => `<button class="od__chip ${m === now ? '' : 'is-off'}"
+            data-mask="${m}"><b>${m === now ? '&check;' : '&middot;'}</b>${m}</button>`).join('')}
+      </div>
+
+      <hr class="od__rule">
+      <p class="od__note">Degauss fires the real coil routine — the geometry
+         swells and rings down, and the synth that plays on every cold start
+         plays here too. Cutting power drops the whole set to standby, guest
+         segment and all.</p>`;
+  }
+
+
+  /* ── findings ──────────────────────────────────────────
+     The DVWA assessment as a report rather than a card. Sealed records
+     that are worth having been sealed. */
+  function findingsPanel() { return `
+    <h1 class="od__h">FINDING<br><b>001</b></h1>
+    <p class="od__sub">Unrestricted file upload &rarr; remote code execution</p>
+
+    <dl class="od__grid">
+      <div class="od__cell od__cell--hot"><dt>Severity</dt><dd>CRITICAL</dd></div>
+      <div class="od__cell"><dt>Target</dt><dd>DVWA</dd></div>
+      <div class="od__cell od__cell--cool"><dt>Status</dt><dd>PUBLISHED</dd></div>
+      <div class="od__cell"><dt>Date</dt><dd>APR<small> 2026</small></dd></div>
+    </dl>
+
+    <p class="od__sub" style="margin-bottom:.6rem">Root cause</p>
+    <p>The upload handler validates neither the file extension, the declared
+       MIME type, nor the file's own signature, and writes into a directory
+       inside the web root where the server will execute what it finds.</p>
+
+    <p class="od__sub" style="margin-bottom:.6rem">Impact</p>
+    <p>A benign PHP shell uploaded through the form returned system-level
+       command execution. From there: the database credentials in configuration,
+       and whatever the web server can reach on the internal network.</p>
+
+    <p class="od__sub" style="margin-bottom:.6rem">Remediation</p>
+    <ul class="od__list">
+      <li><b>01</b><span>Allow-list extensions; never deny-list them</span><em>control</em></li>
+      <li><b>02</b><span>Verify magic bytes against the claimed type</span><em>control</em></li>
+      <li><b>03</b><span>Disable execution in upload directories</span><em>defence</em></li>
+      <li><b>04</b><span>Rename to a UUID so paths cannot be guessed</span><em>defence</em></li>
+    </ul>
+
+    <hr class="od__rule">
+    <p class="od__note">Full write-up, reproduction steps and proof of concept:
+       github.com/Bladekiller246/dvwa-file-upload-Vulnerability-</p>`; }
 
   /* ── the watch panel ───────────────────────────────────── */
 
@@ -247,13 +501,7 @@
     const screen = host.querySelector(`[data-screen="${id}"]`);
     if (p && typeof p.body === 'function' && screen) {
       screen.innerHTML = p.body();
-      const wipe = $('#odWipe', screen);
-      if (wipe) wipe.addEventListener('click', () => {
-        window.JOURNAL?.clear();
-        ctx?.audio?.click?.(true);
-        at = null;              // force the rebuild
-        select(id);
-      });
+      wire(id, screen);
     }
 
     host.querySelectorAll('[data-screen]').forEach(s => {
@@ -263,6 +511,72 @@
       b.classList.toggle('is-on', b.dataset.panel === id);
     });
     ctx?.audio?.key?.();
+  }
+
+  /* Every live panel's controls, in one place. Panels are rebuilt from
+     scratch on each open, so listeners are attached here rather than
+     delegated — nothing survives long enough to leak. */
+  function wire(id, root) {
+    const rebuild = () => { at = null; select(id); };
+
+    // WATCH
+    const wipe = $('#odWipe', root);
+    if (wipe) wipe.addEventListener('click', () => {
+      window.JOURNAL?.clear();
+      ctx?.audio?.click?.(true);
+      rebuild();
+    });
+
+    // RECON
+    const form = $('#odScanForm', root);
+    if (form) {
+      form.addEventListener('submit', e => { e.preventDefault(); runScan(root); });
+      $('#odScan', root)?.addEventListener('keydown', e => e.stopPropagation());
+    }
+
+    // SEGMENT
+    root.querySelectorAll('[data-hide]').forEach(b =>
+      b.addEventListener('click', () => {
+        window.SEGMENT?.toggleHidden(b.dataset.hide);
+        ctx?.audio?.key?.();
+        rebuild();
+      }));
+
+    const arc = $('#odArcade', root);
+    if (arc) arc.addEventListener('click', () => {
+      window.SEGMENT?.set({ arcade: !window.SEGMENT.arcadeOpen() });
+      ctx?.audio?.key?.();
+      rebuild();
+    });
+
+    const save = $('#odNoteSave', root);
+    if (save) save.addEventListener('click', () => {
+      const box = $('#odNote', root);
+      window.SEGMENT?.set({ note: box.value });
+      ctx?.audio?.click?.(false);
+      const msg = $('#odNoteMsg', root);
+      if (msg) msg.textContent = box.value.trim()
+        ? ' left on the desktop for whoever comes next.'
+        : ' cleared — nothing will be waiting.';
+    });
+    $('#odNote', root)?.addEventListener('keydown', e => e.stopPropagation());
+
+    // CONSOLE
+    root.querySelectorAll('[data-cmd]').forEach(b =>
+      b.addEventListener('click', () => {
+        const k = b.dataset.cmd;
+        if (k === 'degauss') window.KVD?.degauss?.();
+        else if (k === 'burst') ctx?.burst?.(420);
+        else if (k === 'power') document.querySelector('#power')?.click();
+      }));
+
+    root.querySelectorAll('[data-mask]').forEach(b =>
+      b.addEventListener('click', () => {
+        const names = window.KVD?.maskNames || ['none', 'dot', 'grille'];
+        window.KVD?.setMask?.(names.indexOf(b.dataset.mask));
+        ctx?.audio?.key?.();
+        rebuild();
+      }));
   }
 
   /* Wall clock in the bar, and how long this operator session has run. */

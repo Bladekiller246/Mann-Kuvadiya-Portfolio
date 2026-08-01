@@ -322,6 +322,12 @@
         <dt>Résumé</dt><dd><a href="Mann_Kuvadiya_Resume.pdf" target="_blank" rel="noopener">Mann_Kuvadiya_Resume.pdf</a></dd>
       </dl>` },
 
+    /* Left by the operator for whoever comes next. Opens itself on the
+       desktop when there is one, and is simply absent when there is
+       not — see SEGMENT.note(). */
+    note: { title: 'FOR_YOU.TXT', label: 'For You', icon: 'doc',
+      w: 420, h: 240, pane: true, body: '' },
+
     bin: { title: 'Recycle Bin', icon: 'bin', w: 360, h: 190, body:
       `<p style="padding:16px;text-align:center;color:#555">This folder is empty.</p>`,
       status: ['0 object(s)', '0 bytes'] },
@@ -673,6 +679,10 @@
       audio: snd(),
       burst: n => kvd().burst?.(n),
       setWarp: n => kvd().setWarpScale?.(n),
+      // RECON needs a server to read headers; this is the same one
+      // compatibility mode uses, and is empty until one is deployed
+      proxy: IE_WORKER,
+      apps: DESKTOP.map(id => ({ id, name: APPS[id]?.label || APPS[id]?.title || id })),
     });
   }
 
@@ -1580,6 +1590,18 @@
     const root = win.querySelector('[data-arc]');
     const src = root.dataset.arc;
     const fluid = root.hasAttribute('data-fluid');
+
+    /* Sealed from the admin segment. The window still opens and still
+       says what it is — a game that has quietly vanished from the
+       folder is a bug report, one that says it was sealed is a story. */
+    if (!window.SEGMENT?.arcadeOpen()) {
+      root.querySelector('[data-go]').replaceWith(
+        Object.assign(document.createElement('p'), {
+          className: 'arc__note',
+          textContent: 'Sealed by the operator. This cabinet is not taking coins today.',
+        }));
+      return;
+    }
 
     if (root.hasAttribute('data-launch')) {
       win.querySelector('[data-go]').addEventListener('click', () =>
@@ -2738,7 +2760,9 @@
   }
 
   function renderIcons() {
-    const list = iconOrder || DESKTOP;
+    // the operator decides what is on this desktop; see segment.js
+    const list = (iconOrder || DESKTOP)
+      .filter(id => !window.SEGMENT?.isHidden(id));
     desk.innerHTML = list.map(id =>
       `<button class="w98icon" data-app="${id}">${I[APPS[id].icon]}` +
       `<span>${APPS[id].label || APPS[id].title}</span></button>`
@@ -2805,6 +2829,20 @@
     buildDesktop();
     show(w98);
     kvd().burst?.(240);
+
+    /* A note left from the admin segment opens itself. Filling the body
+       here rather than at declaration time because it is written after
+       APPS is built, and possibly after this page loaded. */
+    const left = window.SEGMENT?.note();
+    if (left && left.trim()) {
+      APPS.note.body =
+        '<div class="w98pane"><p style="white-space:pre-wrap;margin:0">' +
+        esc(left.trim()) + '</p>' +
+        '<p class="ie-note" style="margin-top:14px">Left on this machine by the ' +
+        'operator. It was not sent from anywhere.</p></div>';
+      defer(() => openApp('note'));
+    }
+
     const first = desk.querySelector('.w98icon');
     if (first) first.focus({ preventScroll: true });
   }

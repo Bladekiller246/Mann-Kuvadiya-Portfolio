@@ -909,9 +909,45 @@
 
   setMask(maskAt);
 
+  /* ── §8c · DEGAUSS ──────────────────────────────────────
+     The coil dumps a decaying field through the tube: the geometry
+     swells, overshoots, and rings down over about half a second. Driven
+     from the operator console in overdrive.js — there is no button for
+     it on the fascia, because a visitor has no business degaussing
+     anything. */
+
+  let degaussing = false;
+
+  function degauss() {
+    if (!powered || degaussing) return;
+    degaussing = true;
+    audio.ensure();
+    audio.degauss();
+    burst(300);
+    body.classList.add('is-degauss');
+
+    /* Each swing smaller than the last, alternating sides, home by
+       ~600ms. Skipped where the warp is off (WebKit): no geometry to
+       ring, and the light half still plays. */
+    if (body.classList.contains('is-warped')) {
+      [[1.5, 0], [0.7, 130], [1.24, 250], [0.86, 370], [1.06, 480], [1, 580]]
+        .forEach(([m, t]) => setTimeout(() => {
+          if (powered) applyWarpScale(WARP_S * m);
+        }, t));
+    }
+
+    setTimeout(() => {
+      body.classList.remove('is-degauss');
+      degaussing = false;
+    }, 640);
+  }
+
   window.KVD = {
     burst,
     audio,
+    degauss,
+    setMask,
+    maskNames: MASKS,
     setWarpScale: applyWarpScale,
     restoreWarp() { applyWarpScale(WARP_S); },
   };

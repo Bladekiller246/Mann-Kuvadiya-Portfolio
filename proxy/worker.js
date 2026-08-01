@@ -120,6 +120,16 @@ async function route(req, env) {
     return new Response('User-agent: *\nDisallow: /\n',
       { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 
+  /* ── /inspect ────────────────────────────────────────────
+     Reports a site's security headers instead of its body. This has to
+     be server-side: the whole reason the browser cannot tell a blocked
+     frame from a working one is that it exposes none of this to script,
+     and a CORS proxy strips the very headers worth reading. Here they
+     arrive intact, before anything is dropped.
+
+     Read-only, same gate and same deny list as everything else. */
+  if (here.pathname === '/inspect') return inspect(req, here, env);
+
   const raw = here.searchParams.get('url');
   if (!raw) return notice(400, 'Nothing to fetch',
     'This is the compatibility-mode proxy for a portfolio. It takes one ' +
@@ -184,6 +194,85 @@ async function route(req, env) {
   if (!/text\/html|application\/xhtml/.test(type)) return out;   // passthrough, headers stripped
   return rewriter(here, dest).transform(out);
 }
+
+/* ── /inspect ──────────────────────────────────────────────────── */
+
+/* The headers worth having an opinion about, and what their absence
+   means. `want:false` marks a header whose *presence* is the finding. */
+const WATCHED = [
+  ['x-frame-options',                'Framing',            true],
+  ['content-security-policy',        'CSP',                true],
+  ['strict-transport-security',      'HSTS',               true],
+  ['x-content-type-options',         'MIME sniffing',      true],
+  ['referrer-policy',                'Referrer',           true],
+  ['permissions-policy',             'Permissions',        true],
+  ['cross-origin-opener-policy',     'COOP',               true],
+  ['cross-origin-resource-policy',   'CORP',               true],
+  ['access-control-allow-origin',    'CORS',               false],
+  ['server',                         'Server banner',      false],
+  ['x-powered-by',                   'Stack banner',       false],
+];
+
+async function inspect(req, here, env) {
+  if (!embedderOk(req, here, env))
+    return json({ error: 'not open to callers' }, 403);
+
+  const raw = here.searchParams.get('url');
+  let dest;
+  try { dest = new URL(raw); } catch { return json({ error: 'bad address' }, 400); }
+
+  const refused = unreachable(dest, here);
+  if (refused) return json({ error: refused }, 403);
+
+  if (env.RATE_LIMITER) {
+    const key = req.headers.get('cf-connecting-ip') || 'anon';
+    const { success } = await env.RATE_LIMITER.limit({ key });
+    if (!success) return json({ error: 'rate limited' }, 429);
+  }
+
+  let res;
+  const t0 = Date.now();
+  try {
+    // GET, not HEAD: plenty of sites answer HEAD differently, or not at
+    // all, and a header report that does not match a real page load is
+    // worse than none
+    res = await fetch(dest.toString(), { method: 'GET', headers: OUT_HEADERS, redirect: 'follow' });
+  } catch (err) {
+    return json({ error: String(err.message || err) }, 502);
+  }
+
+  const found = {};
+  WATCHED.forEach(([h]) => { found[h] = res.headers.get(h); });
+
+  // does it forbid *us* specifically, or everyone
+  const csp = found['content-security-policy'] || '';
+  const fa  = (csp.match(/frame-ancestors([^;]*)/i) || [])[1] || '';
+
+  return json({
+    url: dest.toString(),
+    status: res.status,
+    ms: Date.now() - t0,
+    type: res.headers.get('content-type') || '',
+    headers: found,
+    framing: {
+      xfo: found['x-frame-options'] || null,
+      frameAncestors: fa.trim() || null,
+      // the question the browser will not answer for you
+      framable: !found['x-frame-options'] && !fa.trim(),
+    },
+  });
+}
+
+const json = (obj, status = 200) => new Response(JSON.stringify(obj, null, 2), {
+  status,
+  headers: {
+    'content-type': 'application/json; charset=utf-8',
+    'access-control-allow-origin': '*',
+    'cache-control': 'no-store',
+    'x-robots-tag': 'noindex, nofollow',
+  },
+});
+
 
 /* ── the gate ──────────────────────────────────────────────────── */
 
