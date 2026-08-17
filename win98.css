@@ -479,6 +479,33 @@ body.is-admin .gate__msg.is-deny{
 }
 .w98status i:last-child{ flex:0 0 84px; }
 
+/* A measured-results table inside a project window. Ruled, not boxed —
+   Win98 dialogs set numbers plainly. */
+.w98metrics{ border-collapse:collapse; margin:0 0 9px; width:100%; }
+.w98metrics th,.w98metrics td{
+  padding:2px 8px 2px 0; text-align:right; border-bottom:1px solid #d4d0c8;
+}
+.w98metrics th{ font-weight:400; color:#555; }
+.w98metrics th:first-child,.w98metrics td:first-child{ text-align:left; width:5em; }
+
+/* The image viewer. Grey plate, image centred and fitted — the source is
+   792px wide and no sensible default window is, so scaling down beats a
+   horizontal scrollbar. Panels are equal thirds, hence the caption grid. */
+.w98img{
+  height:100%; display:flex; flex-direction:column; gap:4px;
+  padding:6px; background:var(--f);
+  border:2px solid; border-color:var(--f-sh) var(--f-hi) var(--f-hi) var(--f-sh);
+}
+.w98img img{
+  flex:1; min-height:0; width:100%; object-fit:contain;
+  background:#000; border:1px solid var(--f-dk);
+  image-rendering:auto;
+}
+.w98img__cap{
+  flex:none; display:grid; grid-template-columns:repeat(3,1fr); gap:4px;
+  font-size:10px; color:#333; text-align:center;
+}
+
 /* file / drive list inside a window */
 .w98list{ display:grid; grid-template-columns:repeat(auto-fill,80px); gap:6px; }
 .w98item{

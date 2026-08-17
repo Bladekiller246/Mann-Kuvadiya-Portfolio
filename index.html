@@ -110,9 +110,22 @@
                       <p class="dossier__desc">Self&#8209;sovereign identity. Prove you hold a degree, or
                          that you're over 18, without handing over the data behind it &mdash; credentials
                          stay on the device, the verifier learns the minimum, and there is no
-                         server&#8209;side PII to breach by construction. The crypto core runs on Node
-                         built&#8209;ins with zero runtime dependencies.</p>
-                      <ul class="tags"><li>TypeScript</li><li>W3C VC 2.0</li><li>Groth16 ZK</li><li>Ed25519</li><li>Solidity</li></ul>
+                         server&#8209;side PII to breach by construction.</p>
+                      <p class="dossier__desc">A nine&#8209;package TypeScript monorepo: the
+                         security&#8209;critical core runs on Node built&#8209;ins with <em>zero</em> runtime
+                         dependencies, alongside Groth16 circuits, a Solidity anchor, three services and
+                         a React&nbsp;Native wallet. Consent receipts go into an off&#8209;chain Merkle
+                         transparency log &mdash; only the root is anchored on&#8209;chain, because a
+                         public per&#8209;user log is a correlation oracle and collides with the right to
+                         erasure. Every presentation is nonce&#8209; and audience&#8209;bound, so a captured
+                         QR cannot be replayed elsewhere. 344 tests and an end&#8209;to&#8209;end demo run
+                         issue &rarr; selective disclosure &rarr; verify &rarr; revoke with no mocked
+                         cryptography.</p>
+                      <p class="dossier__desc dossier__desc--caveat">Stated honestly: the shipped suite is
+                         Ed25519 with hash&#8209;based selective disclosure. The BBS+ rail that would make
+                         presentations genuinely unlinkable is interfaced but not implemented, so
+                         unlinkability is a design property here rather than a delivered one.</p>
+                      <ul class="tags"><li>TypeScript</li><li>W3C VC 2.0</li><li>OpenID4VP</li><li>Groth16 ZK</li><li>Ed25519</li><li>Solidity</li><li>React Native</li></ul>
                       <span class="dossier__note">PRIVATE REPOSITORY</span>
                     </div>
                     <span class="dossier__state is-live">LIVE</span>
@@ -120,6 +133,58 @@
 
                   <li class="dossier">
                     <div class="dossier__id"><span class="dossier__desig">MSN&#8209;02</span><span class="dossier__year">2026</span></div>
+                    <div class="dossier__body">
+                      <h3 class="dossier__name">SemiCon&#8209;ML &mdash; NAFNet&#8209;SR</h3>
+                      <p class="dossier__desc">Built for the SemiCon AI Hackathon (KLA problem statement
+                         01): recover a clean 256&times;256 image from a 128&times;128 input wrecked by
+                         multiplicative speckle, additive Gaussian noise and 2&times; downsampling applied
+                         jointly, in random order. Denoise and super&#8209;resolution in one forward pass.</p>
+                      <p class="dossier__desc">A NAFNet body verified byte&#8209;identical to the reference
+                         implementation, with the input and output ends adapted for the task &mdash; a log
+                         input transform, because the dominant noise is <em>multiplicative</em> and the log
+                         makes it behave additively before the network sees it; a resize&#8209;conv SR head;
+                         a bicubic global residual so the network learns only the correction. An FFT notch
+                         on known period&#8209;2 and period&#8209;4 bins removes the last artifact for
+                         +1.35&nbsp;dB at no inference cost.</p>
+
+                      <figure class="fig">
+                        <div class="fig__frame">
+                          <!-- ✎ swap assets/semicon-compare.png to change the plate.
+                               8-bit greyscale, three equal panels wide. -->
+                          <img class="fig__img" src="assets/semicon-compare.png"
+                               width="792" height="256" loading="lazy" decoding="async"
+                               alt="Three panels side by side. Left: the degraded input, buried in
+                                    speckle. Centre: the model's restored output, with the fine
+                                    striped texture legible again. Right: the ground truth, which
+                                    the centre panel closely matches.">
+                        </div>
+                        <figcaption class="fig__cap">
+                          <span>DEGRADED &middot; 128&sup2;</span>
+                          <span>RESTORED &middot; 256&sup2;</span>
+                          <span>GROUND TRUTH</span>
+                        </figcaption>
+                      </figure>
+
+                      <dl class="metrics">
+                        <div><dt>PSNR</dt><dd>29.333&nbsp;dB<span class="metrics__ref">bicubic floor 22.639</span></dd></div>
+                        <div><dt>SSIM</dt><dd>0.7764<span class="metrics__ref">bicubic floor 0.4933</span></dd></div>
+                        <div><dt>LPIPS</dt><dd>0.2669<span class="metrics__ref">lower is better</span></dd></div>
+                        <div><dt>SPEED</dt><dd>12.6&nbsp;ms<span class="metrics__ref">per image, RTX 4060</span></dd></div>
+                      </dl>
+                      <p class="dossier__desc">+6.69&nbsp;dB over the no&#8209;model baseline, on a
+                         320&#8209;image held&#8209;out split that is source&#8209;aware and
+                         leakage&#8209;verified &mdash; 62% of the total gain available between that
+                         baseline and a perfect&#8209;denoise ceiling. 29.16M parameters. The forward
+                         model was <em>measured</em>, not guessed: a 26.2M&#8209;equation kernel solve
+                         and a noise fit at R&sup2;&nbsp;=&nbsp;0.975.</p>
+                      <ul class="tags"><li>PyTorch</li><li>NAFNet</li><li>Python</li><li>Super&#8209;resolution</li><li>Denoising</li><li>CUDA</li></ul>
+                      <a class="dossier__link" href="https://github.com/Bladekiller246/SemiCon-ML" target="_blank" rel="noopener">OPEN CHANNEL <span aria-hidden="true">&rarr;</span></a>
+                    </div>
+                    <span class="dossier__state is-live">LIVE</span>
+                  </li>
+
+                  <li class="dossier">
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;03</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
                       <h3 class="dossier__name">Unrestricted File Upload &rarr; RCE</h3>
                       <p class="dossier__desc">VAPT finding against DVWA's upload module: no extension,
@@ -134,7 +199,7 @@
                   </li>
 
                   <li class="dossier">
-                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;03</span><span class="dossier__year">2026</span></div>
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;04</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
                       <h3 class="dossier__name">SomaiyaSat &middot; SomaiyaPod</h3>
                       <p class="dossier__desc">Mission site and ground&#8209;station tooling for a 5&nbsp;cm
@@ -147,7 +212,7 @@
                   </li>
 
                   <li class="dossier">
-                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;04</span><span class="dossier__year">2026</span></div>
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;05</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
                       <h3 class="dossier__name">E&#8209;Cell Impact on Engineering Campuses</h3>
                       <p class="dossier__desc">Editor on a research paper examining what Entrepreneurship
@@ -172,7 +237,8 @@
                   <li><span class="mod__ok">[ OK ]</span><span class="mod__name">recon.ko</span><span class="mod__val">Nmap, Netcat, Wireshark</span></li>
                   <li><span class="mod__ok">[ OK ]</span><span class="mod__name">webapp.ko</span><span class="mod__val">Burp Suite, OWASP ZAP, DVWA</span></li>
                   <li><span class="mod__ok">[ OK ]</span><span class="mod__name">exploit.ko</span><span class="mod__val">Metasploit, John the Ripper, Exploit&#8209;DB</span></li>
-                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">code.ko</span><span class="mod__val">Python (pandas/NumPy), C, C++, JavaScript</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">code.ko</span><span class="mod__val">Python (pandas/NumPy), C, C++, JavaScript, TypeScript</span></li>
+                  <li><span class="mod__ok">[ OK ]</span><span class="mod__name">ml.ko</span><span class="mod__val">PyTorch, CUDA, image restoration (NAFNet)</span></li>
                   <li><span class="mod__ok">[ OK ]</span><span class="mod__name">data.ko</span><span class="mod__val">MS SQL Server (T&#8209;SQL), MongoDB</span></li>
                   <li><span class="mod__ok">[ OK ]</span><span class="mod__name">infra.ko</span><span class="mod__val">Linux, Git, VS Code, Jupyter</span></li>
                   <li><span class="mod__warn">[LOAD]</span><span class="mod__name">forensics.ko</span><span class="mod__val">honours coursework &mdash; in progress</span></li>

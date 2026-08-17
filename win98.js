@@ -53,6 +53,12 @@
       <path d="M19 3v6h6" fill="#dcdcdc" stroke="#000"/>
       <g stroke="#8a8a8a"><path d="M11 14h12M11 17h12M11 20h12M11 23h8"/></g>`),
 
+    pic: svg(`<path d="M8 3h11l6 6v20H8z" fill="#fff" stroke="#000"/>
+      <path d="M19 3v6h6" fill="#dcdcdc" stroke="#000"/>
+      <rect x="11" y="14" width="12" height="10" fill="#5a8fd0" stroke="#000"/>
+      <circle cx="14.5" cy="17" r="1.5" fill="#ffe066"/>
+      <path d="M11 24l4-5 3 3 2-2 3 4z" fill="#2e9b3f"/>`),
+
     bin: svg(`<path d="M13 4h6v3h-6z" fill="#cfd3d6" stroke="#000"/>
       <rect x="7" y="7" width="18" height="3" fill="#d8dcdf" stroke="#000"/>
       <path d="M9 10h14l-1.5 19h-11z" fill="#b6babd" stroke="#000"/>
@@ -249,24 +255,85 @@
     projects: { title: 'Projects', icon: 'folder', w: 420, h: 250, body: `
       <div class="w98list">
         ${item('doc', 'PrivacyLayer.prj', 'proj1')}
+        ${item('doc', 'SemiCon-ML.prj', 'proj5')}
         ${item('doc', 'DVWA-RCE.prj', 'proj2')}
         ${item('doc', 'SomaiyaSat.prj', 'proj3')}
         ${item('doc', 'E-Cell.prj', 'proj4')}
+        ${item('pic', 'SEMICON.BMP', 'semipic')}
       </div>`,
-      status: ['4 object(s)', '  '] },
+      status: ['6 object(s)', '  '] },
 
-    proj1: { title: 'PrivacyLayer', icon: 'doc', w: 450, h: 290, pane: true, body: `
+    proj1: { title: 'PrivacyLayer', icon: 'doc', w: 460, h: 330, pane: true, body: `
       <h4>PrivacyLayer — 2026</h4>
       <p>Self-sovereign identity. Prove you hold a degree, or that you are over 18,
          without handing over the data behind it: credentials stay on the device,
          the verifier learns the minimum, and there is no server-side PII to breach
          by construction.</p>
-      <p>Issuance, selective disclosure, a Merkle transparency log for consent
-         receipts, revocation, and a Groth16 circuit that answers "over 18?" with
-         nothing but true or false. The crypto core runs on Node built-ins with
-         zero runtime dependencies.</p>
-      <p><b>Built with:</b> TypeScript, W3C VC 2.0, DID, Ed25519, Groth16, Solidity<br>
+      <p>A nine-package TypeScript monorepo. The security-critical core runs on Node
+         built-ins with <i>zero</i> runtime dependencies, alongside Groth16 circuits,
+         a Solidity anchor contract, three services and a React Native wallet.</p>
+      <p>Consent receipts go into an off-chain Merkle transparency log, and only the
+         root is anchored on-chain — a public per-user log would be a correlation
+         oracle and would collide with the right to erasure. Every presentation is
+         nonce- and audience-bound, so a captured QR cannot be replayed against a
+         different verifier. Issuers live in a signed, versioned trust registry, and
+         revocation flips a bitstring status list.</p>
+      <p>344 tests, and an end-to-end demo that runs issue → selective disclosure →
+         verify → revoke with no mocked cryptography.</p>
+      <p><b>Stated honestly:</b> the shipped suite is Ed25519 with hash-based
+         selective disclosure. The BBS+ rail that would make presentations genuinely
+         unlinkable is interfaced but not implemented, so unlinkability is a design
+         property here rather than a delivered one.</p>
+      <p><b>Built with:</b> TypeScript, W3C VC 2.0, DID, OpenID4VP, Ed25519, Groth16,
+         Solidity, React Native<br>
          <b>Status:</b> Live — private repository</p>` },
+
+    proj5: { title: 'SemiCon-ML', icon: 'doc', w: 470, h: 340, pane: true, body: `
+      <h4>SemiCon-ML — NAFNet-SR — 2026</h4>
+      <p>Built for the SemiCon AI Hackathon (KLA problem statement 01): recover a
+         clean 256&times;256 image from a 128&times;128 input degraded by multiplicative
+         speckle, additive Gaussian noise and 2&times; downsampling applied jointly, in
+         random order. Denoising and super-resolution in a single forward pass.</p>
+      <p>A NAFNet body verified byte-identical to the reference implementation, with
+         the input and output ends adapted for the task: a log input transform,
+         because the dominant noise is <i>multiplicative</i> and the log makes it
+         behave additively before the network sees it; a resize-conv SR head; and a
+         bicubic global residual, so the network learns only the correction rather
+         than the whole reconstruction. An FFT notch on known period-2 and period-4
+         bins clears the last artifact for +1.35 dB at no inference cost.</p>
+      <table class="w98metrics">
+        <tr><th></th><th>Bicubic</th><th>Ours</th></tr>
+        <tr><td>PSNR</td><td>22.639 dB</td><td><b>29.333 dB</b></td></tr>
+        <tr><td>SSIM</td><td>0.4933</td><td><b>0.7764</b></td></tr>
+        <tr><td>LPIPS</td><td>0.4631</td><td><b>0.2669</b></td></tr>
+      </table>
+      <p>+6.69 dB over the no-model baseline, on a 320-image held-out split that is
+         source-aware and leakage-verified — 62% of the total gain available between
+         that baseline and a perfect-denoise ceiling. 29.16M parameters, 12.6 ms per
+         image. The forward model was <i>measured</i>, not guessed: a 26.2M-equation
+         kernel solve and a noise fit at R² = 0.975.</p>
+      <p>See <a href="#" data-openlink="semipic">SEMICON.BMP</a> for a plate.</p>
+      <p><b>Built with:</b> PyTorch, Python, NumPy, CUDA<br>
+         <b>Status:</b> Published —
+         <a href="https://github.com/Bladekiller246/SemiCon-ML"
+            target="_blank" rel="noopener">on GitHub</a></p>` },
+
+    /* The one raster image in the OS. Greyscale, three panels wide, shown at
+       whatever the window is rather than at 1:1 — the source is 792px and no
+       default window is that wide. */
+    semipic: { title: 'SEMICON.BMP - Imaging', label: 'SEMICON.BMP', icon: 'pic',
+      w: 500, h: 260, flush: true, body: `
+      <div class="w98img">
+        <img src="assets/semicon-compare.png" width="792" height="256"
+             alt="Three panels side by side. Left: the degraded input, buried in
+                  speckle. Centre: the model's restored output, with the fine
+                  striped texture legible again. Right: the ground truth, which
+                  the centre panel closely matches.">
+        <div class="w98img__cap">
+          <span>Degraded input</span><span>Model output</span><span>Ground truth</span>
+        </div>
+      </div>`,
+      status: ['792 x 256', '8-bit grey'] },
     proj2: { title: 'Unrestricted File Upload to RCE', icon: 'doc', w: 450, h: 290, pane: true, body: `
       <h4>Unrestricted File Upload → RCE — 2026</h4>
       <p>VAPT finding against DVWA's upload module: no extension, MIME-type or
@@ -303,7 +370,8 @@
             <li>Recon — Nmap, Netcat, Wireshark</li>
             <li>Web application — Burp Suite, OWASP ZAP, DVWA</li>
             <li>Exploitation — Metasploit, John the Ripper, Exploit-DB</li>
-            <li>Languages — Python (pandas/NumPy), C, C++, JavaScript</li>
+            <li>Languages — Python (pandas/NumPy), C, C++, JavaScript, TypeScript</li>
+            <li>Machine learning — PyTorch, CUDA, image restoration (NAFNet)</li>
             <li>Databases — MS SQL Server (T-SQL), MongoDB</li>
             <li>Infrastructure — Linux, Git, VS Code, Jupyter</li>
             <li>Forensics — driver loading, honours coursework</li>
@@ -888,6 +956,13 @@
     win.querySelectorAll('[data-open]').forEach(b => {
       b.addEventListener('dblclick', () => openApp(b.dataset.open));
       b.addEventListener('keydown', ev => { if (ev.key === 'Enter') openApp(b.dataset.open); });
+    });
+    /* Prose links inside a window body. Separate from [data-open] because an
+       icon opens on the second click and a link opens on the first. */
+    win.querySelectorAll('[data-openlink]').forEach(a => {
+      a.addEventListener('click', ev => {
+        ev.preventDefault(); openApp(a.dataset.openlink);
+      });
     });
     win.querySelectorAll('.w98item').forEach(b => {
       b.addEventListener('click', () => {
@@ -1717,9 +1792,10 @@
       <table class="ie-table">
         <tr><th>Desig</th><th>Name</th><th>Year</th><th>Status</th></tr>
         <tr><td>MSN-01</td><td>PrivacyLayer</td><td>2026</td><td>LIVE</td></tr>
-        <tr><td>MSN-02</td><td>Unrestricted File Upload &rarr; RCE</td><td>2026</td><td>LIVE</td></tr>
-        <tr><td>MSN-03</td><td>SomaiyaSat &middot; SomaiyaPod</td><td>2026</td><td>BUILD</td></tr>
-        <tr><td>MSN-04</td><td>E-Cell Research Paper</td><td>2026</td><td>BUILD</td></tr>
+        <tr><td>MSN-02</td><td>SemiCon-ML &middot; NAFNet-SR</td><td>2026</td><td>LIVE</td></tr>
+        <tr><td>MSN-03</td><td>Unrestricted File Upload &rarr; RCE</td><td>2026</td><td>LIVE</td></tr>
+        <tr><td>MSN-04</td><td>SomaiyaSat &middot; SomaiyaPod</td><td>2026</td><td>BUILD</td></tr>
+        <tr><td>MSN-05</td><td>E-Cell Research Paper</td><td>2026</td><td>BUILD</td></tr>
       </table>
       <p>Full write-ups are in the <a data-href="http://kvd.local/">Projects</a>
          folder on the desktop, or on
@@ -2445,7 +2521,8 @@
       'RECON ......... Nmap, Netcat, Wireshark',
       'WEB APP ....... Burp Suite, OWASP ZAP, DVWA',
       'EXPLOIT ....... Metasploit, John the Ripper, Exploit-DB',
-      'LANGUAGES ..... Python (pandas/NumPy), C, C++, JavaScript',
+      'LANGUAGES ..... Python (pandas/NumPy), C, C++, JavaScript, TypeScript',
+      'ML ............ PyTorch, CUDA, image restoration (NAFNet)',
       'DATABASES ..... MS SQL Server (T-SQL), MongoDB',
       'INFRA ......... Linux, Git, VS Code, Jupyter',
       'FORENSICS ..... loading, honours coursework',
@@ -2473,16 +2550,66 @@
         'on the device, the verifier learns the minimum, and there is no',
         'server-side PII to breach by construction.',
         '',
-        'Issuance, selective disclosure, a Merkle transparency log for',
-        'consent receipts, revocation, and a Groth16 circuit that answers',
-        '"over 18?" with nothing but true or false. The crypto core runs on',
-        'Node built-ins with zero runtime dependencies.',
+        'A nine-package TypeScript monorepo. The security-critical core runs',
+        'on Node built-ins with ZERO runtime dependencies, alongside Groth16',
+        'circuits, a Solidity anchor contract, three services and a React',
+        'Native wallet.',
         '',
-        'Built with: TypeScript, W3C VC 2.0, DID, Ed25519, Groth16, Solidity',
+        'Consent receipts go into an off-chain Merkle transparency log, and',
+        'only the root is anchored on-chain - a public per-user log would be',
+        'a correlation oracle and would collide with the right to erasure.',
+        'Every presentation is nonce- and audience-bound, so a captured QR',
+        'cannot be replayed against a different verifier. Issuers live in a',
+        'signed, versioned trust registry, and revocation flips a bitstring',
+        'status list.',
+        '',
+        '344 tests, and an end-to-end demo that runs issue -> selective',
+        'disclosure -> verify -> revoke with no mocked cryptography.',
+        '',
+        'Stated honestly: the shipped suite is Ed25519 with hash-based',
+        'selective disclosure. The BBS+ rail that would make presentations',
+        'genuinely unlinkable is interfaced but not implemented, so',
+        'unlinkability is a design property here rather than a delivered one.',
+        '',
+        'Built with: TypeScript, W3C VC 2.0, DID, OpenID4VP, Ed25519,',
+        '            Groth16, Solidity, React Native',
         'Status: private repository',
       ].join('\n'),
+      'SEMICON.TXT': [
+        'MSN-02  SemiCon-ML / NAFNet-SR  (2026, LIVE)',
+        '',
+        'Built for the SemiCon AI Hackathon (KLA problem statement 01):',
+        'recover a clean 256x256 image from a 128x128 input degraded by',
+        'multiplicative speckle, additive Gaussian noise and 2x downsampling',
+        'applied jointly, in random order. Denoising and super-resolution in',
+        'a single forward pass.',
+        '',
+        'A NAFNet body verified byte-identical to the reference, with the',
+        'input and output ends adapted for the task: a log input transform,',
+        'because the dominant noise is MULTIPLICATIVE and the log makes it',
+        'behave additively before the network sees it; a resize-conv SR head;',
+        'and a bicubic global residual, so the network learns only the',
+        'correction rather than the whole reconstruction. An FFT notch on',
+        'known period-2 and period-4 bins clears the last artifact for',
+        '+1.35 dB at no inference cost.',
+        '',
+        '                  BICUBIC        OURS',
+        '  PSNR .......... 22.639 dB      29.333 dB',
+        '  SSIM ..........  0.4933         0.7764',
+        '  LPIPS .........  0.4631         0.2669',
+        '',
+        '+6.69 dB over the no-model baseline, on a 320-image held-out split',
+        'that is source-aware and leakage-verified - 62% of the total gain',
+        'available between that baseline and a perfect-denoise ceiling.',
+        '29.16M parameters, 12.6 ms per image. The forward model was',
+        'MEASURED, not guessed: a 26.2M-equation kernel solve and a noise',
+        'fit at R^2 = 0.975.',
+        '',
+        'Built with: PyTorch, Python, NumPy, CUDA',
+        'Status: github.com/Bladekiller246/SemiCon-ML',
+      ].join('\n'),
       'DVWA.TXT': [
-        'MSN-02  Unrestricted File Upload -> RCE  (2026, LIVE)',
+        'MSN-03  Unrestricted File Upload -> RCE  (2026, LIVE)',
         '',
         "VAPT finding against DVWA's upload module: no extension, MIME-type",
         'or magic-byte validation, on a directory sitting inside the web',
@@ -2498,7 +2625,7 @@
         'Status: github.com/Bladekiller246/dvwa-file-upload-Vulnerability-',
       ].join('\n'),
       'SOMAIYA.TXT': [
-        'MSN-03  SomaiyaSat / SomaiyaPod  (2026, BUILD)',
+        'MSN-04  SomaiyaSat / SomaiyaPod  (2026, BUILD)',
         '',
         'Mission site and ground-station tooling for a 5 cm PocketQube',
         'carrying an onboard AI data router and a multi-mode amateur radio',
@@ -2509,7 +2636,7 @@
         'Status: private repository',
       ].join('\n'),
       'ECELL.TXT': [
-        'MSN-04  E-Cell Impact on Engineering Campuses  (2026, BUILD)',
+        'MSN-05  E-Cell Impact on Engineering Campuses  (2026, BUILD)',
         '',
         'Editor on a research paper examining what Entrepreneurship Cells',
         'actually do for the institutions that house them - correcting',
@@ -2872,10 +2999,16 @@
       };
     });
 
+    // the authored plate belongs to SemiCon-ML, not to the manifest. It stays
+    // only while the live list still has that project for it to belong to —
+    // an output image with nothing above it explains nothing
+    const plate = list.some(m => /semicon/i.test(m.name));
+
     APPS.projects.body = '<div class="w98list">' +
       list.map((m, i) => item('doc', m.name + '.prj', 'proj' + (i + 1))).join('') +
+      (plate ? item('pic', 'SEMICON.BMP', 'semipic') : '') +
       '</div>';
-    APPS.projects.status = [list.length + ' object(s)', '  '];
+    APPS.projects.status = [(list.length + (plate ? 1 : 0)) + ' object(s)', '  '];
 
     // a folder already on screen is showing the old listing
     if (open.has('projects')) { closeApp('projects'); openApp('projects'); }

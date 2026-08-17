@@ -17,6 +17,7 @@ Five files, no build step, no dependencies:
 | `crt.js` | Warp map, safe area, static, boot sequence, channels, power, tube, spectrum. |
 | `win98.css` | Access gate, OS boot, splash, and the Windows 98 shell. |
 | `win98.js` | Icons, window contents, window manager, taskbar, Start menu. |
+| `assets/` | The one image: SemiCon-ML's result plate. See [The one image](#the-one-image). |
 
 ## Run it
 
@@ -32,7 +33,7 @@ The copy is real and current. Search `index.html` for `✎` to find each block:
 
 - **CH1 SIGNAL** — the one-line thesis and the supporting sentence
 - **CH2 ID** — the two bio paragraphs and the four spec rows
-- **CH3 WORK** — four project dossiers. Duplicate an `<li class="dossier">` to add
+- **CH3 WORK** — five project dossiers. Duplicate an `<li class="dossier">` to add
   one. `MSN-01` is just a designation; renumber freely. Status badge is
   `is-live`, `is-arch`, or `is-build`. These are the fallback once repos are
   tagged — see [The live manifest](#the-live-manifest).
@@ -41,21 +42,44 @@ The copy is real and current. Search `index.html` for `✎` to find each block:
   `Mann_Kuvadiya_Resume.pdf` in the repo root, which is not committed yet** —
   the link is dead until that file is there. The riddle pool is in `crt.js` §11b.
 
-**The same four projects live in five places**, and none of them read from each
+**The same five projects live in five places**, and none of them read from each
 other — edit all five or they drift:
 
 | Where | What |
 |---|---|
 | `index.html` CH3 | The dossier cards |
-| `win98.js` §2 `projects` + `proj1`–`proj4` | Projects folder and its windows |
+| `win98.js` §2 `projects` + `proj1`–`proj5` | Projects folder and its windows |
 | `win98.js` §6c2 `SITES` | `kvd.local/missions`, the table |
-| `win98.js` §6d `DOS_FS.PROJECTS` | `PRIVACY.TXT`, `DVWA.TXT`, `SOMAIYA.TXT`, `ECELL.TXT` |
+| `win98.js` §6d `DOS_FS.PROJECTS` | `PRIVACY.TXT`, `SEMICON.TXT`, `DVWA.TXT`, `SOMAIYA.TXT`, `ECELL.TXT` |
 | `win98.js` §2 `skills` + `DOS_FS.SKILLS.TXT` | Device Manager and the skills file |
 
 `PrivacyLayer` and `SomaiyaSat · SomaiyaPod` are **private repositories**, so
-their cards carry no link and say so. Only the DVWA finding is public and
-linked. Tag a repo `portfolio` on GitHub and the live manifest replaces CH3
-entirely — private repos will not appear there, which is the correct behaviour.
+their cards carry no link and say so. The DVWA finding and `SemiCon-ML` are
+public and linked. Tag a repo `portfolio` on GitHub and the live manifest
+replaces CH3 entirely — private repos will not appear there, which is the
+correct behaviour.
+
+### The one image
+
+`assets/semicon-compare.png` is SemiCon-ML's result plate: degraded input,
+model output and ground truth, three equal panels wide. It is the only raster
+in the project, and it is **8-bit greyscale on purpose** — the tube is
+monochrome, so a colour photograph could not appear on it honestly.
+
+It is shown twice, and the two skins treat it differently:
+
+- **Terminal** — `.fig` in CH3. The image is desaturated and then multiplied
+  against `--p`, so it takes whichever phosphor is fitted: near-untouched on P4
+  white, mapped onto green on P1. A white photograph glowing on a green screen
+  is something no monochrome set could produce, which is why the tint is not
+  optional.
+- **Windows 98** — the `semipic` app, `SEMICON.BMP` in the Projects folder, an
+  Imaging-style viewer. The OS is in colour, so no tint is applied there. The
+  window is resizable and the image is `object-fit: contain`, because the source
+  is 792px wide and no sensible default window is.
+
+To swap the plate, replace the file and keep it three equal panels wide — both
+captions are three-column grids that assume it.
 
 The live telemetry (signal %, packet count, elevation, RX rate, spectrum trace)
 is decorative — generated in `crt.js` §9–10. It reads as a console at idle; it
