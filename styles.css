@@ -539,7 +539,7 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
 }
 .fig__frame::after{
   content:''; position:absolute; inset:0; pointer-events:none;
-  background:var(--p); mix-blend-mode:multiply;
+  background:var(--p); mix-blend-mode:multiply; z-index:2;
 }
 /* three equal thirds, because the plate is three equal panels wide */
 .fig__cap{
@@ -547,6 +547,94 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
   margin-top:.34rem; font-size:.54rem; letter-spacing:.15em; color:var(--p-mid);
 }
 .fig__cap span{ text-align:center; }
+
+/* ── The wipe comparison (plate.js) ────────────────────────
+   Mounted over the static figure once React arrives. It reuses
+   .fig__frame, so it inherits the phosphor tint without restating it —
+   the tint sits at z-index 2, panes below it, chrome above, so labels
+   are not multiplied into the image they label. */
+.cmp__bar{ display:flex; flex-wrap:wrap; gap:.3rem; margin:0 0 .4rem; }
+.cmp__pick{
+  font:inherit; font-size:.56rem; letter-spacing:.16em;
+  padding:.24rem .55rem; cursor:pointer;
+  background:transparent; border:1px solid var(--p-dim); color:var(--p-mid);
+  transition:color .18s ease, border-color .18s ease;
+}
+.cmp__pick:hover{ color:var(--p); border-color:var(--p-mid); }
+.cmp__pick.is-on{
+  color:var(--p); border-color:var(--p);
+  box-shadow:0 0 12px rgb(var(--p-glow) / .22);
+}
+
+/* square, because a panel is 256×256 */
+.cmp__frame{ aspect-ratio:1 / 1; max-width:22rem; }
+
+/* One image, three offsets — 792/256 = 309.375% wide, so each 256px
+   panel exactly fills the square frame.
+
+   The divisor is 536, not 256. A percentage in background-position does
+   not shift by that fraction of the container; it aligns the point X%
+   across the *image* with the point X% across the *container*, so the
+   travel available is (image width − container width) = 792 − 256 = 536
+   source pixels. That puts the three panels at 0%, 50% and 100%. */
+.cmp__pane{
+  position:absolute; inset:0; z-index:1;
+  background-image:url("assets/semicon-compare.png");
+  background-repeat:no-repeat;
+  background-size:309.375% 100%;
+  background-position-x:calc(var(--o) * 100% / 536);
+  filter:grayscale(1) contrast(1.06) brightness(.96);
+}
+.cmp__pane--top{ will-change:clip-path; }
+
+.cmp__seam{
+  position:absolute; top:0; bottom:0; z-index:3; width:0;
+  border-left:1px solid var(--p); pointer-events:none;
+  box-shadow:0 0 10px rgb(var(--p-glow) / .5);
+}
+.cmp__grip{
+  position:absolute; top:50%; left:0; translate:-50% -50%;
+  width:1.35rem; height:1.35rem; border:1px solid var(--p);
+  background:rgb(0 0 0 / .55);
+}
+.cmp__grip::before,.cmp__grip::after{
+  content:''; position:absolute; top:50%; width:0; height:.42rem;
+  translate:0 -50%; border-left:1px solid var(--p);
+}
+.cmp__grip::before{ left:.42rem; }
+.cmp__grip::after { right:.42rem; }
+
+.cmp__tag{
+  position:absolute; bottom:.4rem; z-index:3;
+  font-size:.5rem; letter-spacing:.16em; color:var(--p);
+  background:rgb(0 0 0 / .6); padding:.14rem .38rem;
+  border:1px solid var(--p-dim); pointer-events:none;
+}
+.cmp__tag--l{ left:.4rem; }
+.cmp__tag--r{ right:.4rem; }
+
+/* The whole frame is the control: an invisible range gives keyboard,
+   touch and click-anywhere-to-jump for free, which a bare pointer
+   handler would each have to reimplement badly. */
+.cmp__range{
+  position:absolute; inset:0; z-index:4; margin:0;
+  width:100%; height:100%; opacity:0; cursor:ew-resize;
+  -webkit-appearance:none; appearance:none; background:transparent;
+}
+.cmp__range::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:2px; height:100%;
+}
+.cmp__range::-moz-range-thumb{ width:2px; height:100%; border:0; }
+.cmp__frame:focus-within{ outline:1px solid var(--p); outline-offset:2px; }
+
+.cmp__cap{
+  margin-top:.4rem; max-width:34rem;
+  font-size:.7rem; color:var(--ink-dim);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .cmp__pick{ transition:none; }
+}
 
 /* Measured numbers, set as a console readout rather than prose.
    Each cell carries its own border rather than the grid painting one

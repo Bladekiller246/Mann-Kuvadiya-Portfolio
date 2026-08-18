@@ -8,7 +8,7 @@ a channel you tune to.
 Hidden behind the terminal is a second skin: a guest session that boots
 Windows 98 inside the same tube.
 
-Five files, no build step, no dependencies:
+No build step, and nothing to install:
 
 | File | What's in it |
 |---|---|
@@ -17,7 +17,17 @@ Five files, no build step, no dependencies:
 | `crt.js` | Warp map, safe area, static, boot sequence, channels, power, tube, spectrum. |
 | `win98.css` | Access gate, OS boot, splash, and the Windows 98 shell. |
 | `win98.js` | Icons, window contents, window manager, taskbar, Start menu. |
+| `github.js` | The live project manifest. See [The live manifest](#the-live-manifest). |
+| `plate.js` | The one React component. See [The React component](#the-react-component). |
 | `assets/` | The one image: SemiCon-ML's result plate. See [The one image](#the-one-image). |
+
+`journal.js`, `segment.js` and `overdrive.js`/`.css` carry the restricted
+segment behind the access gate.
+
+**One runtime dependency, and only one.** `plate.js` imports React from a CDN
+when CH3 is opened. Everything else on the page is hand-written and imports
+nothing — and the plate it upgrades is authored in the markup, so the page is
+complete whether or not that import ever resolves.
 
 ## Run it
 
@@ -79,7 +89,44 @@ It is shown twice, and the two skins treat it differently:
   is 792px wide and no sensible default window is.
 
 To swap the plate, replace the file and keep it three equal panels wide — both
-captions are three-column grids that assume it.
+captions are three-column grids that assume it. The panel geometry is measured,
+not assumed: three 256×256 panels at x=0, 268 and 536, with 12px white gutters.
+`plate.js` and the `.cmp__pane` rule both depend on those numbers.
+
+## The React component
+
+`plate.js` turns the CH3 result plate into a **wipe comparison** — drag a
+divider between any two of the three panels. Three static panels can show you
+the before and the after but not the boundary between them, and dragging one
+image over another is how a restoration result is actually read.
+
+It is the only React in the project, and the only file that fetches code at
+runtime. It keeps three rules:
+
+- **It is an upgrade, never a requirement.** The authored `<figure>` in
+  `index.html` is complete on its own. React replaces it only after the import
+  resolves — CDN blocked, offline, no module support, an exception in the
+  component, and the static plate simply stays. Verified by loading with
+  `esm.sh` blocked and with JavaScript off entirely.
+- **It costs nothing until it is looked at.** React and react-dom are ~140 KB,
+  and the plate is on CH3. The dynamic `import()` is held back by a
+  `MutationObserver` on the channel's `hidden` attribute, so a visitor who
+  reads CH1 and leaves issues zero requests to the CDN.
+- **No build step.** React 18 from `esm.sh`, markup through
+  [htm](https://github.com/developit/htm)'s tagged templates rather than JSX,
+  so "open `index.html` and it works" stays true.
+
+The three panes are one background image at three offsets rather than three
+files — same bytes, one request, already cached from the static figure. Note
+the divisor in `.cmp__pane`: a percentage in `background-position` aligns the
+point X% across the *image* with the point X% across the *container*, so the
+travel is (image − panel) = 792 − 256 = **536**, not the 256 panel pitch. Using
+256 pushes the image off-screen and paints black.
+
+The wipe control is an invisible `<input type="range">` stretched over the
+frame. That is deliberate: it gives keyboard stepping, touch, focus and
+click-anywhere-to-jump for free, all of which a bare pointer handler would have
+to reimplement, usually worse.
 
 The live telemetry (signal %, packet count, elevation, RX rate, spectrum trace)
 is decorative — generated in `crt.js` §9–10. It reads as a console at idle; it

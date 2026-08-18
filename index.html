@@ -484,5 +484,9 @@
 <!-- last: it feeds the two above once the API answers, and the page is
      complete without it -->
 <script src="github.js"></script>
+<!-- the one React component. type=module because it imports React from a
+     CDN at runtime; the CH3 plate is authored complete in the markup, so
+     an old browser or a blocked CDN simply keeps the static one -->
+<script type="module" src="plate.js"></script>
 </body>
 </html>
