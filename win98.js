@@ -256,12 +256,13 @@
       <div class="w98list">
         ${item('doc', 'PrivacyLayer.prj', 'proj1')}
         ${item('doc', 'SemiCon-ML.prj', 'proj5')}
+        ${item('doc', 'DATNet.prj', 'proj6')}
         ${item('doc', 'DVWA-RCE.prj', 'proj2')}
         ${item('doc', 'SomaiyaSat.prj', 'proj3')}
         ${item('doc', 'E-Cell.prj', 'proj4')}
         ${item('pic', 'SEMICON.BMP', 'semipic')}
       </div>`,
-      status: ['6 object(s)', '  '] },
+      status: ['7 object(s)', '  '] },
 
     proj1: { title: 'PrivacyLayer', icon: 'doc', w: 460, h: 330, pane: true, body: `
       <h4>PrivacyLayer — 2026</h4>
@@ -318,6 +319,35 @@
          <a href="https://github.com/Bladekiller246/SemiCon-ML"
             target="_blank" rel="noopener">on GitHub</a></p>` },
 
+    proj6: { title: 'DATNet', icon: 'doc', w: 470, h: 330, pane: true, body: `
+      <h4>DATNet — dual-axis restoration — 2026</h4>
+      <p><b>Work in progress.</b> Not published, and there is no verdict yet —
+         what follows is what has been built and measured, not a result.</p>
+      <p>One transformer block holding both attention axes at once: Restormer's
+         channel-axis MDTA and SwinIR's shifted-window spatial attention, blended
+         by a learned per-channel gate. The claim isn't that two attentions were
+         combined — that is crowded — but that the channel/spatial balance is
+         an <i>explicit, measurable quantity</i> that depends on the degradation,
+         and that one all-in-one checkpoint can carry super-resolution too.</p>
+      <p>Trained on denoising, the gate does not sit still. It settles
+         channel-dominant at full resolution (g ≈ 0.80), spatial-dominant across
+         the bottleneck (g ≈ 0.20), and close to even in between — the shape the
+         hypothesis says should exist at all. That is one arm; the comparison arms
+         have not been re-run, so it is a measurement rather than a finding.</p>
+      <p>An ablation is only honest if the arms differ by architecture and nothing
+         else, so MDTA and GDFN are held bit-exact against Restormer's own
+         implementation and the window attention against SwinIR.</p>
+      <p>The first run of the experiment was thrown out: the gate turned out to be
+         decorative, making the dual arm a fixed blend rather than the architecture
+         under test. It was discarded, a test now asserts the gate and only the
+         gate sets the balance, and the remaining arms are queued rather than
+         claimed.</p>
+      <p>Trained on one 8 GB laptop GPU in bounded, resumable segments. The card
+         does not run out of memory — the driver silently spills to system RAM and
+         runs 20× slower — so the allocator is capped to make the failure honest.</p>
+      <p><b>Built with:</b> PyTorch, Python, CUDA<br>
+         <b>Status:</b> Work in progress — not yet published</p>` },
+
     /* The one raster image in the OS. Greyscale, three panels wide, shown at
        whatever the window is rather than at 1:1 — the source is 792px and no
        default window is that wide. */
@@ -371,7 +401,7 @@
             <li>Web application — Burp Suite, OWASP ZAP, DVWA</li>
             <li>Exploitation — Metasploit, John the Ripper, Exploit-DB</li>
             <li>Languages — Python (pandas/NumPy), C, C++, JavaScript, TypeScript</li>
-            <li>Machine learning — PyTorch, CUDA, image restoration (NAFNet)</li>
+            <li>Machine learning — PyTorch, CUDA, image restoration (NAFNet, Restormer/SwinIR)</li>
             <li>Databases — MS SQL Server (T-SQL), MongoDB</li>
             <li>Infrastructure — Linux, Git, VS Code, Jupyter</li>
             <li>Forensics — driver loading, honours coursework</li>
@@ -1793,9 +1823,10 @@
         <tr><th>Desig</th><th>Name</th><th>Year</th><th>Status</th></tr>
         <tr><td>MSN-01</td><td>PrivacyLayer</td><td>2026</td><td>LIVE</td></tr>
         <tr><td>MSN-02</td><td>SemiCon-ML &middot; NAFNet-SR</td><td>2026</td><td>LIVE</td></tr>
-        <tr><td>MSN-03</td><td>Unrestricted File Upload &rarr; RCE</td><td>2026</td><td>LIVE</td></tr>
-        <tr><td>MSN-04</td><td>SomaiyaSat &middot; SomaiyaPod</td><td>2026</td><td>BUILD</td></tr>
-        <tr><td>MSN-05</td><td>E-Cell Research Paper</td><td>2026</td><td>BUILD</td></tr>
+        <tr><td>MSN-03</td><td>DATNet &middot; dual-axis restoration</td><td>2026</td><td>WIP</td></tr>
+        <tr><td>MSN-04</td><td>Unrestricted File Upload &rarr; RCE</td><td>2026</td><td>LIVE</td></tr>
+        <tr><td>MSN-05</td><td>SomaiyaSat &middot; SomaiyaPod</td><td>2026</td><td>BUILD</td></tr>
+        <tr><td>MSN-06</td><td>E-Cell Research Paper</td><td>2026</td><td>BUILD</td></tr>
       </table>
       <p>Full write-ups are in the <a data-href="http://kvd.local/">Projects</a>
          folder on the desktop, or on
@@ -2522,7 +2553,7 @@
       'WEB APP ....... Burp Suite, OWASP ZAP, DVWA',
       'EXPLOIT ....... Metasploit, John the Ripper, Exploit-DB',
       'LANGUAGES ..... Python (pandas/NumPy), C, C++, JavaScript, TypeScript',
-      'ML ............ PyTorch, CUDA, image restoration (NAFNet)',
+      'ML ............ PyTorch, CUDA, image restoration (NAFNet, Restormer/SwinIR)',
       'DATABASES ..... MS SQL Server (T-SQL), MongoDB',
       'INFRA ......... Linux, Git, VS Code, Jupyter',
       'FORENSICS ..... loading, honours coursework',
@@ -2608,8 +2639,53 @@
         'Built with: PyTorch, Python, NumPy, CUDA',
         'Status: github.com/Bladekiller246/SemiCon-ML',
       ].join('\n'),
+      'DATNET.TXT': [
+        'MSN-03  DATNet / dual-axis restoration  (2026, WORK IN PROGRESS)',
+        '',
+        'NOT PUBLISHED, AND THERE IS NO VERDICT YET. What follows is what',
+        'has been built and measured, not a result.',
+        '',
+        "One transformer block holding both attention axes at once:",
+        "Restormer's channel-axis MDTA and SwinIR's shifted-window spatial",
+        'attention, blended by a learned per-channel gate. The claim is not',
+        'that two attentions were combined - that is crowded - but that the',
+        'channel/spatial balance is an EXPLICIT, MEASURABLE quantity that',
+        'depends on the degradation, and that one all-in-one checkpoint can',
+        'carry super-resolution too.',
+        '',
+        'Trained on denoising, the gate does not sit still:',
+        '',
+        '  ENC 1 ......... g ~ 0.80    channel-dominant',
+        '  ENC 2 ......... g ~ 0.50    even',
+        '  BOTTLENECK .... g ~ 0.20    spatial-dominant',
+        '  DEC 2 ......... g ~ 0.50    even',
+        '  DEC 1 / REFINE  g ~ 0.80    channel-dominant',
+        '',
+        'That is the shape the hypothesis says should exist at all. It is',
+        'also ONE ARM - the comparison arms have not been re-run, so it is',
+        'a measurement rather than a finding.',
+        '',
+        'An ablation is only honest if the arms differ by architecture and',
+        'nothing else, so MDTA and GDFN are held bit-exact against',
+        "Restormer's own implementation, and the window attention against",
+        'SwinIR.',
+        '',
+        'The first run of the experiment was thrown out: the gate turned',
+        'out to be decorative, making the dual arm a fixed blend rather',
+        'than the architecture under test. It was discarded, a test now',
+        'asserts the gate and only the gate sets the balance, and the',
+        'remaining arms are queued rather than claimed.',
+        '',
+        'Trained on one 8 GB laptop GPU in bounded, resumable segments.',
+        'The card does not run out of memory - the driver silently spills',
+        'to system RAM and runs 20x slower - so the allocator is capped to',
+        'make the failure honest.',
+        '',
+        'Built with: PyTorch, Python, CUDA',
+        'Status: work in progress, not yet published',
+      ].join('\n'),
       'DVWA.TXT': [
-        'MSN-03  Unrestricted File Upload -> RCE  (2026, LIVE)',
+        'MSN-04  Unrestricted File Upload -> RCE  (2026, LIVE)',
         '',
         "VAPT finding against DVWA's upload module: no extension, MIME-type",
         'or magic-byte validation, on a directory sitting inside the web',
@@ -2625,7 +2701,7 @@
         'Status: github.com/Bladekiller246/dvwa-file-upload-Vulnerability-',
       ].join('\n'),
       'SOMAIYA.TXT': [
-        'MSN-04  SomaiyaSat / SomaiyaPod  (2026, BUILD)',
+        'MSN-05  SomaiyaSat / SomaiyaPod  (2026, BUILD)',
         '',
         'Mission site and ground-station tooling for a 5 cm PocketQube',
         'carrying an onboard AI data router and a multi-mode amateur radio',
@@ -2636,7 +2712,7 @@
         'Status: private repository',
       ].join('\n'),
       'ECELL.TXT': [
-        'MSN-05  E-Cell Impact on Engineering Campuses  (2026, BUILD)',
+        'MSN-06  E-Cell Impact on Engineering Campuses  (2026, BUILD)',
         '',
         'Editor on a research paper examining what Entrepreneurship Cells',
         'actually do for the institutions that house them - correcting',

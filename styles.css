@@ -548,6 +548,33 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
 }
 .fig__cap span{ text-align:center; }
 
+/* ── The learned axis-gate chart (DATNet) ───────────────────────
+   Drawn as SVG rather than embedded as the matplotlib PNG it comes
+   from: sixteen points do not need a raster, and vector strokes take
+   the phosphor tokens directly instead of needing the greyscale-and-
+   multiply treatment a photograph does. */
+.axisplot{ max-width:34rem; }
+.axisplot__svg{ display:block; width:100%; height:auto; overflow:visible; }
+.axisplot__axis line{ stroke:var(--p-dim); stroke-width:1; }
+.axisplot__even{
+  stroke:var(--p-dim); stroke-width:1; stroke-dasharray:3 3;
+}
+.axisplot__line{
+  fill:none; stroke:var(--p); stroke-width:1.6;
+  stroke-linejoin:round; stroke-linecap:round;
+  filter:drop-shadow(0 0 3px rgb(var(--p-glow) / .45));
+}
+.axisplot__dot circle{ fill:var(--p); }
+.axisplot__t{ fill:var(--p-mid); font-size:7px; letter-spacing:.06em; }
+.axisplot__k{ fill:var(--p-mid); font-size:6px; letter-spacing:.14em; }
+
+/* a caption that qualifies a figure rather than labelling its parts */
+.fig__note{
+  margin-top:.4rem; max-width:34rem;
+  font-size:.66rem; line-height:1.5; color:var(--ink-dim);
+}
+.fig__note b{ color:var(--p-mid); font-weight:400; }
+
 /* ── The wipe comparison (plate.js) ────────────────────────
    Mounted over the static figure once React arrives. It reuses
    .fig__frame, so it inherits the phosphor tint without restating it —
@@ -679,6 +706,7 @@ body.is-glitch .raster{ animation:roll .34s steps(3) 1; }
 .dossier__state{
   position:absolute; top:clamp(.95rem,2.2vh,1.45rem); right:0;
   font-size:.54rem; letter-spacing:.18em; padding:.2rem .45rem; border:1px solid;
+  white-space:nowrap;
 }
 .is-live { color:var(--p);     border-color:var(--p-dim); box-shadow:0 0 12px rgb(var(--p-glow) / .22); }
 .is-arch { color:#5f6669;      border-color:#2b3134; }

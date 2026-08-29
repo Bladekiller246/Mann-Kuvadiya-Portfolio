@@ -43,7 +43,7 @@ The copy is real and current. Search `index.html` for `✎` to find each block:
 
 - **CH1 SIGNAL** — the one-line thesis and the supporting sentence
 - **CH2 ID** — the two bio paragraphs and the four spec rows
-- **CH3 WORK** — five project dossiers. Duplicate an `<li class="dossier">` to add
+- **CH3 WORK** — six project dossiers. Duplicate an `<li class="dossier">` to add
   one. `MSN-01` is just a designation; renumber freely. Status badge is
   `is-live`, `is-arch`, or `is-build`. These are the fallback once repos are
   tagged — see [The live manifest](#the-live-manifest).
@@ -52,20 +52,20 @@ The copy is real and current. Search `index.html` for `✎` to find each block:
   `Mann_Kuvadiya_Resume.pdf` in the repo root, which is not committed yet** —
   the link is dead until that file is there. The riddle pool is in `crt.js` §11b.
 
-**The same five projects live in five places**, and none of them read from each
+**The same six projects live in five places**, and none of them read from each
 other — edit all five or they drift:
 
 | Where | What |
 |---|---|
 | `index.html` CH3 | The dossier cards |
-| `win98.js` §2 `projects` + `proj1`–`proj5` | Projects folder and its windows |
+| `win98.js` §2 `projects` + `proj1`–`proj6` | Projects folder and its windows |
 | `win98.js` §6c2 `SITES` | `kvd.local/missions`, the table |
-| `win98.js` §6d `DOS_FS.PROJECTS` | `PRIVACY.TXT`, `SEMICON.TXT`, `DVWA.TXT`, `SOMAIYA.TXT`, `ECELL.TXT` |
+| `win98.js` §6d `DOS_FS.PROJECTS` | `PRIVACY.TXT`, `SEMICON.TXT`, `DATNET.TXT`, `DVWA.TXT`, `SOMAIYA.TXT`, `ECELL.TXT` |
 | `win98.js` §2 `skills` + `DOS_FS.SKILLS.TXT` | Device Manager and the skills file |
 
-`PrivacyLayer` and `SomaiyaSat · SomaiyaPod` are **private repositories**, so
-their cards carry no link and say so. The DVWA finding and `SemiCon-ML` are
-public and linked. Tag a repo `portfolio` on GitHub and the live manifest
+`PrivacyLayer` and `SomaiyaSat · SomaiyaPod` are **private repositories** and
+`DATNet` is not pushed anywhere yet, so those cards carry no link and say so.
+The DVWA finding and `SemiCon-ML` are public and linked. Tag a repo `portfolio` on GitHub and the live manifest
 replaces CH3 entirely — private repos will not appear there, which is the
 correct behaviour.
 
@@ -92,6 +92,25 @@ To swap the plate, replace the file and keep it three equal panels wide — both
 captions are three-column grids that assume it. The panel geometry is measured,
 not assumed: three 256×256 panels at x=0, 268 and 536, with 12px white gutters.
 `plate.js` and the `.cmp__pane` rule both depend on those numbers.
+
+## DATNet is marked work in progress, on purpose
+
+`DATNet` (MSN-03) carries **WORK IN PROGRESS**, not `BUILD`, and states in the
+card that there is no verdict yet. That is not modesty — it is what the project's
+own `docs/CONTEXT.md` says. Its first experiment was invalidated by a decorative
+gate, the comparison arms have not been re-run, and the PSNR numbers that exist
+are marked *"not a number to report anywhere"* in the source repo. So none of
+them appear here.
+
+What the card does show is the one thing that **is** measured: the learned axis
+gate, drawn from `results/phase1_denoise_60k__dual__seed0/effective_gate.json`
+— channel-dominant at full resolution, spatial-dominant at the bottleneck. It is
+captioned as one arm and as a measurement rather than a finding.
+
+The chart is **inline SVG**, not the matplotlib PNG it comes from. Sixteen points
+do not need a raster, and vector strokes take `--p` directly, so the chart tints
+with the phosphor instead of needing the greyscale-and-multiply treatment a
+photograph does. Update the points in `index.html` when the arms are re-run.
 
 ## The React component
 

@@ -186,6 +186,86 @@
                   <li class="dossier">
                     <div class="dossier__id"><span class="dossier__desig">MSN&#8209;03</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
+                      <h3 class="dossier__name">DATNet &mdash; dual&#8209;axis restoration</h3>
+                      <p class="dossier__desc">One transformer block holding both attention axes at once:
+                         Restormer's channel&#8209;axis MDTA and SwinIR's shifted&#8209;window spatial
+                         attention, blended by a learned per&#8209;channel gate. The claim isn't that two
+                         attentions were combined &mdash; that is crowded &mdash; but that the
+                         channel/spatial balance is an <em>explicit, measurable quantity</em> that depends
+                         on the degradation, and that one all&#8209;in&#8209;one checkpoint can carry
+                         super&#8209;resolution alongside the rest.</p>
+                      <p class="dossier__desc">Trained on denoising, the gate does not sit still. It settles
+                         channel&#8209;dominant at full resolution, spatial&#8209;dominant at the bottleneck,
+                         and close to even in between &mdash; which is the shape the hypothesis says should
+                         exist at all.</p>
+
+                      <figure class="fig axisplot">
+                        <svg class="axisplot__svg" viewBox="0 0 344 130" role="img" preserveAspectRatio="xMidYMid meet"
+                             aria-label="Learned axis preference across the sixteen blocks in signal order.
+                                         It starts near 0.80, channel-dominant, through the first encoder
+                                         level; drops to about 0.50 at the second; falls to about 0.20,
+                                         spatial-dominant, across the four bottleneck blocks; returns to
+                                         0.50, then back to 0.80 through the decoder and refinement.">
+                          <g class="axisplot__axis">
+                            <line x1="36" y1="12" x2="36" y2="96"/>
+                            <line x1="36" y1="96" x2="338" y2="96"/>
+                          </g>
+                          <line class="axisplot__even" x1="36" y1="54" x2="338" y2="54"/>
+                          <text class="axisplot__t" x="32" y="15" text-anchor="end">1.0</text>
+                          <text class="axisplot__t" x="32" y="57" text-anchor="end">0.5</text>
+                          <text class="axisplot__t" x="32" y="99" text-anchor="end">0</text>
+                          <text class="axisplot__k" x="40" y="9">CHANNEL AXIS</text>
+                          <text class="axisplot__k" x="40" y="108">SPATIAL AXIS</text>
+                          <polyline class="axisplot__line" points="40.0,28.6 59.3,27.7 78.7,53.9 98.0,54.3 117.3,54.1 136.7,79.1 156.0,79.0 175.3,78.5 194.7,78.7 214.0,53.6 233.3,53.8 252.7,53.4 272.0,28.6 291.3,28.5 310.7,28.6 330.0,28.7"/>
+                          <g class="axisplot__dot">
+                            <circle cx="40.0" cy="28.6" r="2.2"/>
+                            <circle cx="59.3" cy="27.7" r="2.2"/>
+                            <circle cx="78.7" cy="53.9" r="2.2"/>
+                            <circle cx="98.0" cy="54.3" r="2.2"/>
+                            <circle cx="117.3" cy="54.1" r="2.2"/>
+                            <circle cx="136.7" cy="79.1" r="2.2"/>
+                            <circle cx="156.0" cy="79.0" r="2.2"/>
+                            <circle cx="175.3" cy="78.5" r="2.2"/>
+                            <circle cx="194.7" cy="78.7" r="2.2"/>
+                            <circle cx="214.0" cy="53.6" r="2.2"/>
+                            <circle cx="233.3" cy="53.8" r="2.2"/>
+                            <circle cx="252.7" cy="53.4" r="2.2"/>
+                            <circle cx="272.0" cy="28.6" r="2.2"/>
+                            <circle cx="291.3" cy="28.5" r="2.2"/>
+                            <circle cx="310.7" cy="28.6" r="2.2"/>
+                            <circle cx="330.0" cy="28.7" r="2.2"/>
+                          </g>
+                          <text class="axisplot__k" x="50" y="124">ENC 1</text>
+                          <text class="axisplot__k" x="98" y="124">ENC 2</text>
+                          <text class="axisplot__k" x="136" y="124">BOTTLENECK</text>
+                          <text class="axisplot__k" x="214" y="124">DEC 2</text>
+                          <text class="axisplot__k" x="272" y="124">DEC 1 / REFINE</text>
+                        </svg>
+                        <figcaption class="fig__note">Learned axis preference per block, denoising,
+                           60k iterations. <b>One arm.</b> The comparison arms have not been re&#8209;run,
+                           so this is a measurement, not a verdict.</figcaption>
+                      </figure>
+
+                      <p class="dossier__desc">An ablation is only honest if the arms differ by architecture
+                         and nothing else, so MDTA and GDFN are held bit&#8209;exact against Restormer's own
+                         implementation and the window attention against SwinIR &mdash; a difference in the
+                         results then can't be a difference in the reimplementation.</p>
+                      <p class="dossier__desc dossier__desc--caveat">The first run of this experiment was
+                         thrown out. The gate turned out to be decorative, which made the dual arm a
+                         fixed blend rather than the architecture under test, so the result answered a
+                         question nobody asked. It was discarded, a test now asserts that the gate and
+                         only the gate sets the balance, and the comparison arms are queued rather than
+                         claimed. There is no verdict here yet, and the numbers that exist are not
+                         reportable.</p>
+                      <ul class="tags"><li>PyTorch</li><li>Transformers</li><li>Restormer</li><li>SwinIR</li><li>Ablation design</li></ul>
+                      <span class="dossier__note">NOT YET PUBLISHED</span>
+                    </div>
+                    <span class="dossier__state is-build">WORK IN PROGRESS</span>
+                  </li>
+
+                  <li class="dossier">
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;04</span><span class="dossier__year">2026</span></div>
+                    <div class="dossier__body">
                       <h3 class="dossier__name">Unrestricted File Upload &rarr; RCE</h3>
                       <p class="dossier__desc">VAPT finding against DVWA's upload module: no extension,
                          MIME&#8209;type or magic&#8209;byte validation, on a directory sitting inside the web
@@ -199,7 +279,7 @@
                   </li>
 
                   <li class="dossier">
-                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;04</span><span class="dossier__year">2026</span></div>
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;05</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
                       <h3 class="dossier__name">SomaiyaSat &middot; SomaiyaPod</h3>
                       <p class="dossier__desc">Mission site and ground&#8209;station tooling for a 5&nbsp;cm
@@ -212,7 +292,7 @@
                   </li>
 
                   <li class="dossier">
-                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;05</span><span class="dossier__year">2026</span></div>
+                    <div class="dossier__id"><span class="dossier__desig">MSN&#8209;06</span><span class="dossier__year">2026</span></div>
                     <div class="dossier__body">
                       <h3 class="dossier__name">E&#8209;Cell Impact on Engineering Campuses</h3>
                       <p class="dossier__desc">Editor on a research paper examining what Entrepreneurship
@@ -311,31 +391,31 @@
           <!-- ══ ACCESS GATE ══════════════════════════════════
                Reached from CH5 by pressing Enter three times. -->
           <div class="gate" id="gate" hidden>
-            <div class="gate__inner">
-              <p class="gate__eyebrow">RESTRICTED SEGMENT &middot; AUTHORISATION REQUIRED</p>
-              <h2 class="gate__title">SELECT ACCESS LEVEL</h2>
+            <div class="axisplot__inner">
+              <p class="axisplot__eyebrow">RESTRICTED SEGMENT &middot; AUTHORISATION REQUIRED</p>
+              <h2 class="axisplot__title">SELECT ACCESS LEVEL</h2>
               <!-- GUEST first, and focused on open: it is the way in. ADMIN
                    is the door that is not for the visitor, and is dressed
                    like it. -->
-              <div class="gate__pair">
+              <div class="axisplot__pair">
                 <button class="gbtn gbtn--guest" id="gateGuest"><b>GUEST</b><span>read&#8209;only workstation</span></button>
                 <button class="gbtn gbtn--admin" id="gateAdmin"><b>ADMIN</b><span>authorised personnel only</span></button>
               </div>
-              <button class="gate__back" id="gateBack">&larr; back to terminal</button>
+              <button class="axisplot__back" id="gateBack">&larr; back to terminal</button>
             </div>
           </div>
 
           <!-- ══ ADMIN LOGIN ══ (client-side only; always refuses) -->
           <div class="gate" id="login" hidden>
-            <form class="gate__inner" id="loginForm" autocomplete="off" novalidate>
-              <p class="gate__eyebrow">KVD&#8209;4400 &middot; ADMIN CONSOLE</p>
-              <h2 class="gate__title">AUTHENTICATE</h2>
+            <form class="axisplot__inner" id="loginForm" autocomplete="off" novalidate>
+              <p class="axisplot__eyebrow">KVD&#8209;4400 &middot; ADMIN CONSOLE</p>
+              <h2 class="axisplot__title">AUTHENTICATE</h2>
               <label class="fld"><span>USERNAME</span>
                 <input id="luser" type="text" autocomplete="off" spellcheck="false"></label>
               <label class="fld"><span>PASSWORD</span>
                 <input id="lpass" type="password" autocomplete="new-password"></label>
-              <p class="gate__msg" id="loginMsg" role="status" aria-live="polite"></p>
-              <div class="gate__row">
+              <p class="axisplot__msg" id="loginMsg" role="status" aria-live="polite"></p>
+              <div class="axisplot__row">
                 <button class="gbtn gbtn--sm" type="submit" id="loginGo">AUTHENTICATE</button>
                 <button class="gbtn gbtn--sm" type="button" id="loginCancel">CANCEL</button>
               </div>
